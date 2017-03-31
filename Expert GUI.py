@@ -9,21 +9,25 @@ class ExpertGUI():
 
                 #open the baselines.txt and populate the fields with them
                 self.lines = open("baselines.txt").read().split('\n')
+                print(self.lines)
 
                 # these variables will hold the baseline values set by the expert user
 
                 self.arousalBaseline = self.lines[0]
-                print(self.lines[0])
+                #print(self.lines[0])
                 self.activityBaseline = self.lines[1]
-                print(self.lines[1])
+                #print(self.lines[1])
                 self.heartRateBaseline = self.lines[2]
-                print(self.lines)
+                #print(self.lines[2])
 
                 # these variables will hold the threshold triggers set by the expert user
 
                 self.arousalTrigger = self.lines[3]
+                #print(self.lines[3])
                 self.activityTrigger = self.lines[4]
+                #print(self.lines[4])
                 self.heartRateTrigger = self.lines[5]
+                #print(self.lines[5])
 
                 #frame 1 holds the checkboxes to determine which variables to track
                 self.frame1 = LabelFrame(self.root,text = "Select alerts to display")
