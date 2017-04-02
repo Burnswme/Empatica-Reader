@@ -136,6 +136,3 @@ class ExpertGUI():
                 print(self.activityDisplay.get(),file = self.file)
                 print(self.heartRateDisplay.get(),file = self.file)
 
-
-
-test = ExpertGUI()
