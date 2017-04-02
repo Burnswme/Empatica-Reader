@@ -7,41 +7,41 @@ class ExpertGUI():
                 self.root.title("Empatica Reader Expert Menu")
                 self.root.geometry('500x300+25+25')
 
-                #open the baselines.txt and populate the fields with them
+        # open the baselines.txt and populate the fields with them
                 self.lines = open("baselines.txt").read().split('\n')
                 print(self.lines)
 
-                # these variables will hold the baseline values set by the expert user
+        # these variables will hold the baseline values set by the expert user
 
                 self.arousalBaseline = self.lines[0]
-                #print(self.lines[0])
+        # print(self.lines[0])
                 self.activityBaseline = self.lines[1]
                 #print(self.lines[1])
                 self.heartRateBaseline = self.lines[2]
-                #print(self.lines[2])
+        # print(self.lines[2])
 
-                # these variables will hold the threshold triggers set by the expert user
+        # these variables will hold the threshold triggers set by the expert user
 
                 self.arousalTrigger = self.lines[3]
-                #print(self.lines[3])
+        # print(self.lines[3])
                 self.activityTrigger = self.lines[4]
-                #print(self.lines[4])
+        # print(self.lines[4])
                 self.heartRateTrigger = self.lines[5]
-                #print(self.lines[5])
+        # print(self.lines[5])
 
-                #frame 1 holds the checkboxes to determine which variables to track
+        # frame 1 holds the checkboxes to determine which variables to track
                 self.frame1 = LabelFrame(self.root,text = "Select alerts to display")
                 self.frame1.pack(side = LEFT)
 
-                #frame 2 holds the data from the currently selected variable
+        # frame 2 holds the data from the currently selected variable
                 self.frame2 = LabelFrame(self.root,text = "Update Baselines")
                 self.frame2.pack(side = RIGHT)
 
-                #frame 3 holds the % deviation from the baseline at which the program triggers an alert
+        # frame 3 holds the % deviation from the baseline at which the program triggers an alert
                 self.frame3 = LabelFrame(self.root,text = "Set percentage at which to trigger alerts")
                 self.frame3.pack(side = TOP)
 
-                #the update button takes values present in the fields, checks them against baselines.txt, and updates them
+        # the update button takes values present in the fields, checks them against baselines.txt, and updates them
                 self.updateButton = Button(self.root, text="Update", fg="black",command = self.update)
                 self.updateButton.pack(side=BOTTOM)
 
@@ -59,8 +59,8 @@ class ExpertGUI():
                 self.c2.pack()
                 self.c3.pack()
 
-                #these are the entry boxes for the baselines, populated automatically by the GUI
-                #using the baselines present in baselines.txt
+        # these are the entry boxes for the baselines, populated automatically by the GUI
+        # using the baselines present in baselines.txt
 
                 self.l1 = Label(self.frame2,text = "Arousal Baseline")
                 self.l1.pack()
@@ -78,8 +78,8 @@ class ExpertGUI():
                 self.E3.pack()
                 self.E3.insert(self.heartRateBaseline,self.heartRateBaseline)
 
-                #these are the entry boxes for the alert thresholds, set automatically by the GUI
-                #using the last 3 lines from baselines.txt
+        # these are the entry boxes for the alert thresholds, set automatically by the GUI
+        # using the last 3 lines from baselines.txt
                 self.l4 = Label(self.frame3, text = "Arousal Alert Threshold")
                 self.l4.pack()
                 self.E4 = Entry(self.frame3,bd = 5)
@@ -121,4 +121,3 @@ class ExpertGUI():
                 print(self.heartRateBaseline,file = self.file)
 
 
-test = ExpertGUI()
