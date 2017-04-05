@@ -1,16 +1,19 @@
 from tkinter import *
+from tkinter import filedialog
+from tkinter import messagebox
 from tkinter import ttk
+from PIL import Image, ImageTk
 
 class ExpertGUI():
         def __init__(self):
 
                 self.root = Tk()
                 self.root.title("Empatica Reader Expert Menu")
-                self.root.geometry('500x300+25+25')
+                self.root.geometry('500x500+25+25')
 
                 #open the baselines.txt and populate the fields with them
                 self.lines = open("baselines.txt").read().split('\n')
-                print(self.lines)
+                #print(self.lines)
 
                 # these variables will hold the baseline values set by the expert user
 
@@ -39,25 +42,52 @@ class ExpertGUI():
                 self.heartRateDisplay = IntVar()
                 self.heartRateDisplay.set(self.lines[8])
 
-                #self.arousalDisplay = set(self.lines[6])
-                #self.activityDisplay = set(self.lines[7])
-                #self.heartRateDisplay = set(self.lines[8])
+                #these variables will hold the path specifying the source image of the alerts
+
+                self.arousalAlert = self.lines[9]
+                self.activityAlert = self.lines[10]
+                self.heartRateAlert = self.lines[11]
+
+
+                #these variables will hold the actual images
+                self.imgtemp = Image.open(self.arousalAlert)
+                self.imgtemp = self.imgtemp.resize((40,40),Image.ANTIALIAS)
+                self.aroAlert = ImageTk.PhotoImage(self.imgtemp)
+
+                self.imgtemp = Image.open(self.activityAlert)
+                self.imgtemp = self.imgtemp.resize((40,40),Image.ANTIALIAS)
+                self.actAlert = ImageTk.PhotoImage(self.imgtemp)
+
+                self.imgtemp = Image.open(self.heartRateAlert)
+                self.imgtemp = self.imgtemp.resize((40,40),Image.ANTIALIAS)
+                self.heaAlert = ImageTk.PhotoImage(self.imgtemp)
+
+
+
+
+
+
 
                 #frame 1 holds the checkboxes to determine which variables to track
                 self.frame1 = LabelFrame(self.root,text = "Select alerts to display")
-                self.frame1.pack(side = LEFT)
+                self.frame1.grid(row=0,column=0)
 
                 #frame 2 holds the data from the currently selected variable
                 self.frame2 = LabelFrame(self.root,text = "Update Baselines")
-                self.frame2.pack(side = RIGHT)
+                self.frame2.grid(row=0,column=1)
 
                 #frame 3 holds the % deviation from the baseline at which the program triggers an alert
                 self.frame3 = LabelFrame(self.root,text = "Set percentage at which to trigger alerts")
-                self.frame3.pack(side = TOP)
+                self.frame3.grid(row=1,column=1)
+
+                #frame 4 holds the current images used for alerts and allows the user to specify a path
+                #where to find the new alerts
+                self.frame4 = LabelFrame(self.root,text = "Set the visual representations of the alerts")
+                self.frame4.grid(row=1,column=0)
 
                 #the update button takes values present in the fields, checks them against baselines.txt, and updates them
                 self.updateButton = Button(self.root, text="Update", fg="black",command = self.update)
-                self.updateButton.pack(side=BOTTOM)
+                self.updateButton.grid(row = 3,column = 0)
 
                 #these are the checkboxes which set which variables to display alerts for
                 self.c1 = Checkbutton(self.frame1,text = "Arousal",variable = self.arousalDisplay, onvalue = 1,offvalue = 0,height = 5,
@@ -107,6 +137,23 @@ class ExpertGUI():
                 self.E6.pack()
                 self.E6.insert(self.heartRateTrigger,self.heartRateTrigger)
 
+                #these are the images used for the alerts
+                self.l7 = Label(self.frame4,text = "Arousal Alert Image",image = self.aroAlert)
+                self.l7.grid(column = 0,row = 0)
+                self.l8 = Label(self.frame4,text = "Activity Alert Image",image = self.actAlert)
+                self.l8.grid(column = 0,row = 1)
+                self.l9 = Label(self.frame4,text = "Heart Rate Alert Image",image = self.heaAlert)
+                self.l9.grid(column = 0,row = 2)
+                self.arousalButton = Button(self.frame4, text="Update Arousal Alert Image", fg="black",
+                                            command = lambda: self.pickFile(self.aroAlert))
+                self.arousalButton.grid(column = 1,row = 0)
+                self.activityButton = Button(self.frame4, text = "Update Activity Alert Image",fg = "black",
+                                             command = lambda: self.pickFile(self.actAlert))
+                self.activityButton.grid(column = 1,row = 1)
+                self.heartRateButton = Button(self.frame4,text = "Update Heart Rate Alert Image",fg = "black",
+                                              command = lambda: self.pickFile(self.heaAlert))
+                self.heartRateButton.grid(column = 1,row = 2)
+
                 self.root.mainloop()
 
         def update(self):
@@ -135,4 +182,35 @@ class ExpertGUI():
                 print(self.arousalDisplay.get(),file = self.file)
                 print(self.activityDisplay.get(),file = self.file)
                 print(self.heartRateDisplay.get(),file = self.file)
+                print(self.arousalAlert,file = self.file)
+                print(self.activityAlert,file = self.file)
+                print(self.heartRateAlert,file = self.file)
 
+        def pickFile(self,image):
+                if (image == self.aroAlert):
+                        #self.arousalAlert = filedialog.askopenfilename()
+                        self.arousalAlert = filedialog.askopenfilename()
+                        #self.imgtemp = Image.open(self.arousalAlert)
+                        #self.imgtemp = self.imgtemp.resize((40, 40), Image.ANTIALIAS)
+                        #self.aroAlert = ImageTk.PhotoImage(self.imgtemp)
+                if(image == self.actAlert):
+                        #self.activityAlert = filedialog.askopenfilename()
+                        self.activityAlert = filedialog.askopenfilename()
+                        #self.imgtemp = Image.open(self.activityAlert)
+                        #self.imgtemp = self.imgtemp.resize((40, 40), Image.ANTIALIAS)
+                        #self.actAlert = ImageTk.PhotoImage(self.imgtemp)
+                if(image == self.heaAlert):
+                        #self.heartRateAlert = filedialog.askopenfilename()
+                        self.heartRateAlert = filedialog.askopenfilename()
+                        #self.imgtemp = Image.open(self.heartRateAlert)
+                        #self.imgtemp = self.imgtemp.resize((40, 40), Image.ANTIALIAS)
+                        #self.heaAlert = ImageTk.PhotoImage(self.imgtemp)
+
+
+
+
+
+
+
+
+test = ExpertGUI()
