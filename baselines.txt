@@ -1,9 +1,12 @@
-65
-85
-60
-20
+75
+90
+55
 15
-60
-0
+30
+55
 1
 0
+1
+C:/Users/William/PycharmProjects/Empatica Reader/Apple.jpg
+C:/Users/William/PycharmProjects/Empatica Reader/Monkey.jpg
+C:/Users/William/PycharmProjects/Empatica Reader/Donkey.jpg
