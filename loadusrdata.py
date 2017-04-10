@@ -49,7 +49,7 @@ class loadDataGUI():
             i = i+1
 def dbavger(self, ary=[]):
     self.sampleRate = ary[1]
-    self.arrayIndex = 3
+    self.arrayIndex = 2
     self.counter = 0
     self.returnVal = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     self.type = ""
@@ -60,13 +60,16 @@ def dbavger(self, ary=[]):
 
     if (self.sampleRate == 1):
         self.type = "HR"
-        self.counter = len(ary)/360 #the counter is the incoming array length, divided by the number of measurements in an hour
+        self.counter = 360 #the counter is the incoming array length, divided by the number of measurements in an hour
         self.divisor = 360          #divisor is used to calculate the average later
     elif (self.sampleRate == 4):
         self.type = "EDA"
-        self.counter = len(ary)/1440
+        self.counter = 1440
         self.divisor = 1440
-    while (self.hours < 24):  # outer loop counts up from 0 to 23
+
+    self.outerCounter = len(ary)/self.divisor   #outerCounter controls the outer while loop, since we don't know in
+                                                #advance how many hours of data are in the file
+    while (self.hours < self.outerCounter):  # outer loop counts up from 0 to 23
 
         while (self.counter > 0):             # inner loop counts down from counter to 0
             self.sum += ary(self.arrayIndex)  # array index increments by ten so only a tenth
@@ -75,6 +78,6 @@ def dbavger(self, ary=[]):
         self.average = self.sum / self.divisor
         self.returnVal[self.hours] = self.average   #store the average for this hour in the return array
         self.counter = self.divisor
-        self.hours -= 1
+        self.hours += 1
 
-    self.commitdb(self.returnVal, self.type)         
+    self.commitdb(self.returnVal, self.type)   
