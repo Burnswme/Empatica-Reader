@@ -79,4 +79,4 @@ def dbavger(self,ary = []):
 
 
 
-    commitdb(self.returnVal,self.type)            
+    self.commitdb(self.returnVal,self.type)            
