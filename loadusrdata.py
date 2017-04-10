@@ -71,11 +71,11 @@ class loadDataGUI():
 
 #inserts all values from array to database
         while(i<len(ar)):
-            com = 'INSERT into Data( date,'+st+') VALUES ('+time+', '+ar[i]+')'
+            com = 'INSERT into Data( Date,'+st+') VALUES ('+time+', '+ar[i]+')'
             self.cursor.execute(com)
             i = i+1
             time = time+3600
-def dbavger(self, ary=[]):
+def dbavger(self, ary):
     timestamp = ary[0]%3600
     sampleRate = ary[1]
     arrayIndex = 0
@@ -106,7 +106,7 @@ def dbavger(self, ary=[]):
     while (arrayIndex < end):  # outer loop counts up from 0 to 23
 
         while (counter > 0):             # inner loop counts down from counter to 0
-            sum += ary(arrayIndex)  # array index increments by ten so only a tenth
+            sum += ary[arrayIndex]  # array index increments by ten so only a tenth
             arrayIndex += 10             # of the values are collected
             counter -= 1
         average = sum / divisor
