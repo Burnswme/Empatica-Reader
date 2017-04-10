@@ -90,6 +90,8 @@ class LogInTk():
     def getUsrId(self):
         return self.usrId
     def getPwd(self):
+        #clear the window after login
+        self.win.destroy()
         return self.pwd
 
 main()
