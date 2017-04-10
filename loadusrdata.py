@@ -47,3 +47,36 @@ class loadDataGUI():
             com = 'INSERT into Data('+str+') VALUES '+ar[i]
             cursor.execute(com)
             i = i+1
+def dbavger(self,ary = []):
+    self.sampleRate = ary[1]
+    self.arrayIndex = 3
+    self.counter = 24
+    self.returnVal = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+    self.type = ""
+    self.sum = 0
+    self.divisor = 1
+    self.average = 0
+    self.hours = 0
+
+    if(self.sampleRate == 1):
+        self.type = "HR"
+        self.counter = 360
+        self.divisor = 360
+    elif(self.sampleRate == 4):
+        self.type = "EDA"
+        self.counter = 1440
+        self.divisor = 1440
+    while(self.hours < 24): #outer loop counts up from 0 to 23
+
+        while(self.counter > 0): #inner loop counts down from counter to 0
+            self.sum += ary(self.arrayIndex)    #array index increments by ten so only a tenth
+            self.arrayIndex += 10               #of the values are collected
+            self.counter -= 1
+        self.average = self.sum/self.divisor
+        self.returnVal[self.hours] = self.average
+        self.counter = self.divisor
+        self.hours -= 1
+
+
+
+    commitdb(self.returnVal,self.type)            
