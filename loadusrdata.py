@@ -75,3 +75,44 @@ class loadDataGUI():
             self.cursor.execute(com)
             i = i+1
             time = time+3600
+def dbavger(self, ary=[]):
+    timestamp = ary[0]%3600
+    sampleRate = ary[1]
+    arrayIndex = 0
+    if(self.timestamp > 0):                                 #this is to ensure no partial hours are measured
+        self.arrayIndex = timestamp*sampleRate    #skip ahead to the first full hour of data
+
+    counter = 0
+    returnVal = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    type = ""
+    sum = 0
+    divisor = 1
+    average = 0
+    hours = 0
+
+    if (sampleRate == 1):
+        type = "HR"
+        counter = 360           #the counter is the incoming array length, divided by the number of measurements in an hour
+        divisor = 360           #divisor is used to calculate the average later
+    elif (sampleRate == 4):
+        type = "EDA"
+        counter = 1440
+        divisor = 1440
+
+    end = len(ary) - arrayIndex   #this is to remove any partial hours at the end of the sample
+    leftOver = end%divisor
+    end = end-leftOver              #end is the final index of the measured data
+
+    while (arrayIndex < end):  # outer loop counts up from 0 to 23
+
+        while (counter > 0):             # inner loop counts down from counter to 0
+            sum += ary(arrayIndex)  # array index increments by ten so only a tenth
+            arrayIndex += 10             # of the values are collected
+            counter -= 1
+        average = sum / divisor
+        returnVal[hours] = average   #store the average for this hour in the return array
+        counter = divisor
+        hours += 1
+
+
+    self.commitdb(returnVal, type)            
