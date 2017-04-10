@@ -32,9 +32,9 @@ class loadDataGUI():
 
 # establish db connection to be used
         self.connection = pymysql.connect(host = 'localhost',
-                                      user = 'a',
+                                      user = 'root',
                                       password = 'a',
-                                      db = 'EmpaticaReader')
+                                      db = 'empaticareader')
 
         self.cursor = self.connection.cursor()
 
@@ -83,7 +83,7 @@ def dbavger(self, ary):
         self.arrayIndex = timestamp*sampleRate    #skip ahead to the first full hour of data
 
     counter = 0
-    returnVal = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    returnVal = []
     type = ""
     sum = 0
     divisor = 1
@@ -110,7 +110,7 @@ def dbavger(self, ary):
             arrayIndex += 10             # of the values are collected
             counter -= 1
         average = sum / divisor
-        returnVal[hours] = average   #store the average for this hour in the return array
+        returnVal.append(average)   #store the average for this hour in the return array
         counter = divisor
         hours += 1
 
