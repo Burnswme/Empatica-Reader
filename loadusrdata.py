@@ -11,7 +11,13 @@ class loadDataGUI():
 
         self.loadButton = ttk.Button(self.datawin, text = 'choose file for upload',command = self.open).place(relx = .5, rely = .5, anchor = "center")
 
+        self.fin = ttk.Button(self.datawin, text = 'done', command = self.close).place(relx = .5, rely = .8, anchor = "center")
+
+        
         self.datawin.mainloop()
+        
+    def close(self):
+        self.datawin.destroy()
 
     def open(self):
         self.path = filedialog.askdirectory()
@@ -19,9 +25,12 @@ class loadDataGUI():
         self.heartRate = open(self.path + "/HR.csv")
         self.arousal = open(self.path + "/EDA.csv")
 
-        hrarr = self.heartRate.read().split("\n")
         accarr = self.activity.read().split("\n")
+        hrarr = self.heartRate.read().split("\n")
         arousalarr = self.arousal.read().split("\n")
+        
+        dbavger(hrarr)
+        dbavger(arousalarr)
 
     def commitdb(self, ar, str):
         # commits data to data base
