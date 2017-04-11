@@ -4,6 +4,17 @@ from tkinter import ttk
 import pymysql
 
 class loadDataGUI():
+    # establish db connection to be used
+    connection = pymysql.connect(host='localhost',
+                                      user='root',
+                                      password='',
+                                      db='empaticareader')
+
+    cursor = connection.cursor()
+
+    # an offset to put utc time into eastern time, 4 hours
+    offset = 3600*4
+
     def __init__(self):
         self.datawin = Tk()
 
@@ -17,16 +28,6 @@ class loadDataGUI():
 
         self.datawin.mainloop()
 
-        # an offset to put utc time into eastern time, 4 hours
-        self.offset = 3600*4
-
-        # establish db connection to be used
-        self.connection = pymysql.connect(host='localhost',
-                                          user='root',
-                                          password='',
-                                          db='empaticareader')
-
-        self.cursor = self.connection.cursor()
 
     def close(self):
         self.datawin.destroy()
@@ -43,41 +44,41 @@ class loadDataGUI():
 
 
 
-# call the methods to compile the data from the files
+        # call the methods to compile the data from the files
         self.dbavger(self.hrarr)
         self.dbavger(self.arousalarr)
 
         self.fill(self.hrarr[0])
 
-# method to fill missing rows of db
+    # method to fill missing rows of db
     def fill(self, dat):
 
-# pull largest and thus most recent date from db
+        # pull largest and thus most recent date from db
         self.cursor.exectute('SELECT MAX(date) FROM Data')
         last = self.cursor.fetchone()
         last -= last(0)-self.offset
         i = 1
-# fill the days with no data with 0's
+        # fill the days with no data with 0's
         while(dat< last):
             last = (last+3600*i)
             stat = 'INSERT into Data (date, ACC, HR, EDA) VALUES('+str(last)+', 0,0,0)'
             self.cursor.execute(stat)
 
 
-# commits data to data base
+    # commits data to data base
     def commitdb(self, ar, st):
         i=0
 
 
-#to put timestamp to next lowest hour
-        time = int(self.hrarr[0])%3600
-        time = int(self.hrarr[0])-time+3600
+        #to put timestamp to next lowest hour
+        time = int(float(self.hrarr[0]))%3600
+        time = int(float(self.hrarr[0]))-time+3600
         time = time - self.offset
 
 
-#inserts all values from array to database
+        #inserts all values from array to database
         while(i<len(ar)):
-            com = 'INSERT into Data( date,'+st+') VALUES ('+str(time)+', '+ar[i]+')'
+            com = 'INSERT into Data( date,'+st+') VALUES ('+str(time)+', '+str(ar[i])+')'
             self.cursor.execute(com)
             i = i+1
             time = time+3600
@@ -107,13 +108,16 @@ class loadDataGUI():
             counter = 1440
             divisor = 1440
 
-        end = len(ary) - arrayIndex   #this is to remove any partial hours at the end of the sample
+        end = len(ary) - arrayIndex  #number of valid data indexes in list
         leftOver = end % divisor
         end = end-leftOver              #end is the final index of the measured data
         leveler = (end-arrayIndex)%10   # sets the end to the last set or data that needs to be read
         end = end - leveler
 
-        while (arrayIndex < end):  # outer loop counts up from 0 to 23
+        print('arrylen: '+str(len(ary))+' end: '+str(end)+' counter: '+str(counter)+' type: '+type+' array index: '+str(arrayIndex))
+
+
+        while (arrayIndex <= (end-3600)):  # outer loop counts up from 0 to 23
 
             while (counter > 0):             # inner loop counts down from counter to 0
                 sum += int(float(ary[arrayIndex]))  # array index increments by ten so only a tenth
