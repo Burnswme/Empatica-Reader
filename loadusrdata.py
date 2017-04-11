@@ -42,13 +42,24 @@ class loadDataGUI():
         self.accarr = self.activity.read().split("\n")
         self.arousalarr = self.arousal.read().split("\n")
 
+        #to put timestamp to next lowest hour
+        stime = int(float(self.hrarr[0]))%3600
+        stime = int(float(self.hrarr[0]))-stime+3600
+        stime = stime - self.offset
 
+        #fills any missing dates with 0
+        self.fill(self.hrarr[0])
+        
+        etime = len(self.hrarr)//3600
+
+        while stime<=etime:
+            self.cursor.execute('INSERT into Data(date) VALUES ('+str(stime)+')')
+            stime += 3600
 
         # call the methods to compile the data from the files
         self.dbavger(self.hrarr)
         self.dbavger(self.arousalarr)
 
-        self.fill(self.hrarr[0])
 
     # method to fill missing rows of db
     def fill(self, dat):
@@ -59,7 +70,7 @@ class loadDataGUI():
         last -= last(0)-self.offset
         i = 1
         # fill the days with no data with 0's
-        while(dat< last):
+        while(float(dat)< last):
             last = (last+3600*i)
             stat = 'INSERT into Data (date, ACC, HR, EDA) VALUES('+str(last)+', 0,0,0)'
             self.cursor.execute(stat)
@@ -114,13 +125,10 @@ class loadDataGUI():
         leveler = (end-arrayIndex)%10   # sets the end to the last set or data that needs to be read
         end = end - leveler
 
-        print('arrylen: '+str(len(ary))+' end: '+str(end)+' counter: '+str(counter)+' type: '+type+' array index: '+str(arrayIndex))
-
 
         while (arrayIndex <= (end-divisor*10)):  # outer loop counts up from 0 to 23
 
             while (counter > 0):             # inner loop counts down from counter to 0
-                print(ary[arrayIndex]+' '+str(arrayIndex))
                 sum += float(ary[arrayIndex])  # array index increments by ten so only a tenth
                 arrayIndex += 10             # of the values are collected
                 counter -= 1
