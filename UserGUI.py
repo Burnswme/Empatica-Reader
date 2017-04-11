@@ -1,9 +1,31 @@
-#import TKinter and ttk
+#import tkinter and pymysql for database interaction
 from tkinter import *
+import pymysql
+import datetime
+
 
 class UsrGUI():
+    DAY = 86400
+    HOUR = 3600
+
+    # database connection
+    connection = pymysql.connect(host='localhost',
+                                      user='root',
+                                      password='',
+                                      db='empaticareader')
+
+    cursor = connection.cursor()
+
+    # pull most recent date to start from
+    com = 'SELECT max(date) from Data'
+    cursor.execute(com)
+    recdate = cursor.fetchone()
+    startdate = (recdate(0))
+    recdate = recdate(0) - recdate(0) % DAY
+    recdate = recdate - 604800
 
     def __init__(self):
+
         self.rootu = Tk()
         self.rootu.geometry('1200x600')
 
@@ -15,26 +37,28 @@ class UsrGUI():
 
         self.dayLbl = Label(self.rootu, width = 8, text = 'Day').grid(row = 0, column = 0)
 
-# hour labels for canvas
+
+# colored hour labels for canvas
         self.displayMatrix = [[0 for x in range(24)]for y in range(7)]
 
         i = 0
         while i <= 6:
             j = 0
             while j<=23:
-                self.displayMatrix[i][j] = Label(self.daysCanvas, height = 5, width = 5 , bg = self.setColor(j),relief = RIDGE).grid(row = i+1,column =j+1)
+                self.displayMatrix[i][j] = Label(self.daysCanvas, height = 5, width = 5 , bg = self.setColor(i,j),relief = RIDGE).grid(row = i+1,column =j+1)
                 j+=1
             i+=1
 
 
-# left side labels for days
-        mon = Label(self.daysCanvas, text="Monday").grid(row = 1,column = 0, stick = 'nsew')
-        tue = Label(self.daysCanvas, text="Tuesday").grid(row = 2,column = 0, stick = 'nsew')
-        wed = Label(self.daysCanvas, text="Wednesday").grid(row = 3,column = 0, stick = 'nsew')
-        thu = Label(self.daysCanvas, text="Thursday").grid(row = 4,column = 0, stick = 'nsew')
-        fri = Label(self.daysCanvas, text="Friday").grid(row = 5,column = 0, stick = 'nsew')
-        sat = Label(self.daysCanvas, text="Saturday").grid(row = 6,column = 0, stick = 'nsew')
-        sun = Label(self.daysCanvas, text="Sunday").grid(row = 7,column = 0, stick = 'nsew')
+# date labels on left side
+        self.datematrix = [0 for x in range(7)]
+
+        i = 0
+        while i <=6:
+            d = datetime.datetime.fromtimestamp(self.recdate).strftime('%m-%d') #convert unix timestamp into readable date
+            self.datematrix[i] = Label(self.daysCanvas, text = d).grid(row = i+1, column = 0, stick = 'nsew')
+            i+=1
+            self.recdate+=86400
 
 # hour labels for top
         w = 5
@@ -64,8 +88,14 @@ class UsrGUI():
         elevenP = Label(self.rootu, text = '11:00',width = w ).grid(row = 0,column = 24)
 
 # to set the color of a given hour block of a day
-    def setColor(self, h):
-        if (h>7 and h<20):
-            return 'orange'
-        else:
-            return 'blue'
+    def setColor(self, d, h):
+        # set unix timestamp from day/hour
+        time = self.startdate + d*self.DAY + h*self.HOUR
+        # pull necessary data
+        com = ('SELECT (ACC, HR, EDA) from Data WHERE date ='+str(time))
+        self.cursor.exectue(com)
+
+        datatuple = self.cursor.fetchone()
+        ACC = datatuple(0)
+        HR = datatuple(1)
+        EDA = datatuple(2)
