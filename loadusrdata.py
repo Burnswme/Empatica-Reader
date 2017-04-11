@@ -117,10 +117,11 @@ class loadDataGUI():
         print('arrylen: '+str(len(ary))+' end: '+str(end)+' counter: '+str(counter)+' type: '+type+' array index: '+str(arrayIndex))
 
 
-        while (arrayIndex <= (end-3600)):  # outer loop counts up from 0 to 23
+        while (arrayIndex <= (end-divisor*10)):  # outer loop counts up from 0 to 23
 
             while (counter > 0):             # inner loop counts down from counter to 0
-                sum += int(float(ary[arrayIndex]))  # array index increments by ten so only a tenth
+                print(ary[arrayIndex]+' '+str(arrayIndex))
+                sum += float(ary[arrayIndex])  # array index increments by ten so only a tenth
                 arrayIndex += 10             # of the values are collected
                 counter -= 1
             average = sum / divisor
