@@ -22,8 +22,8 @@ class loadDataGUI():
 
         # establish db connection to be used
         self.connection = pymysql.connect(host='localhost',
-                                          user='a',
-                                          password='a',
+                                          user='root',
+                                          password='',
                                           db='empaticareader')
 
         self.cursor = self.connection.cursor()
@@ -84,8 +84,8 @@ class loadDataGUI():
 
 
     def dbavger(self, ary):
-        timestamp = ary[0]%3600
-        sampleRate = ary[1]
+        timestamp = int(float(ary[0])%3600)
+        sampleRate = int(float(ary[1]))
         arrayIndex = 0
         if(timestamp > 0):                                 # this is to ensure no partial hours are measured
             arrayIndex = timestamp*sampleRate    # skip ahead to the first full hour of data
@@ -110,11 +110,13 @@ class loadDataGUI():
         end = len(ary) - arrayIndex   #this is to remove any partial hours at the end of the sample
         leftOver = end % divisor
         end = end-leftOver              #end is the final index of the measured data
+        leveler = (end-arrayIndex)%10   # sets the end to the last set or data that needs to be read
+        end = end - leveler
 
         while (arrayIndex < end):  # outer loop counts up from 0 to 23
 
             while (counter > 0):             # inner loop counts down from counter to 0
-                sum += ary(arrayIndex)  # array index increments by ten so only a tenth
+                sum += int(float(ary[arrayIndex]))  # array index increments by ten so only a tenth
                 arrayIndex += 10             # of the values are collected
                 counter -= 1
             average = sum / divisor
