@@ -89,7 +89,7 @@ class loadDataGUI():
 
         #inserts all values from array to database
         while(i<len(ar)):
-            com = 'INSERT into Data( date,'+st+') VALUES ('+str(time)+', '+str(ar[i])+')'
+            com = 'UPDATE SET '+st+'='+str(ar[i])+'WHERE date = time'
             self.cursor.execute(com)
             i = i+1
             time = time+3600
