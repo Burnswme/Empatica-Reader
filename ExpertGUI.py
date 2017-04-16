@@ -12,36 +12,70 @@ class ExpertGUI():
                 self.rootE.title("Empatica Reader Expert Menu")
                 self.rootE.geometry('500x500+25+25')
 
-                #open the baselines.txt and populate the fields with them
-                self.lines = open("baselines.txt").read().split('\n')
+                #attempt to open the baselines.txt and populate the fields with them
+                try:
+                        self.lines = open("baselines.txt").read().split('\n')
 
-                # these variables will hold the baseline values set by the expert user
+                        # these variables will hold the baseline values set by the expert user
 
-                self.arousalBaseline = self.lines[0]
-                self.activityBaseline = self.lines[1]
-                self.heartRateBaseline = self.lines[2]
+                        self.arousalBaseline = self.lines[0]
+                        self.activityBaseline = self.lines[1]
+                        self.heartRateBaseline = self.lines[2]
 
-                # these variables will hold the threshold triggers set by the expert user
+                        # these variables will hold the threshold triggers set by the expert user
 
-                self.arousalTrigger = self.lines[3]
-                self.activityTrigger = self.lines[4]
-                self.heartRateTrigger = self.lines[5]
+                        self.arousalTrigger = self.lines[3]
+                        self.activityTrigger = self.lines[4]
+                        self.heartRateTrigger = self.lines[5]
 
-                #these variables will hold the values of the checkboxes
+                        #these variables will hold the values of the checkboxes
 
-                self.arousalDisplay = IntVar()
-                self.arousalDisplay.set(self.lines[6])
-                self.activityDisplay = IntVar()
-                self.activityDisplay.set(self.lines[7])
-                self.heartRateDisplay = IntVar()
-                self.heartRateDisplay.set(self.lines[8])
-                #print(self.arousalDisplay.get(),self.activityDisplay.get(),self.heartRateDisplay.get())
+                        self.arousalDisplay = IntVar()
+                        self.arousalDisplay.set(self.lines[6])
+                        self.activityDisplay = IntVar()
+                        self.activityDisplay.set(self.lines[7])
+                        self.heartRateDisplay = IntVar()
+                        self.heartRateDisplay.set(self.lines[8])
+                        #print(self.arousalDisplay.get(),self.activityDisplay.get(),self.heartRateDisplay.get())
 
-                #these variables will hold the path specifying the source image of the alerts
+                        #these variables will hold the path specifying the source image of the alerts
 
-                self.arousalAlert = self.lines[9]
-                self.activityAlert = self.lines[10]
-                self.heartRateAlert = self.lines[11]
+                        self.arousalAlert = self.lines[9]
+                        self.activityAlert = self.lines[10]
+                        self.heartRateAlert = self.lines[11]
+
+                except Exception as inst:
+                        #if the baselines.txt file fails to open, open the backup
+
+                        self.lines = open("backup.txt").read().split('\n')
+
+                        # these variables will hold the baseline values set by the expert user
+
+                        self.arousalBaseline = self.lines[0]
+                        self.activityBaseline = self.lines[1]
+                        self.heartRateBaseline = self.lines[2]
+
+                        # these variables will hold the threshold triggers set by the expert user
+
+                        self.arousalTrigger = self.lines[3]
+                        self.activityTrigger = self.lines[4]
+                        self.heartRateTrigger = self.lines[5]
+
+                        # these variables will hold the values of the checkboxes
+
+                        self.arousalDisplay = IntVar()
+                        self.arousalDisplay.set(self.lines[6])
+                        self.activityDisplay = IntVar()
+                        self.activityDisplay.set(self.lines[7])
+                        self.heartRateDisplay = IntVar()
+                        self.heartRateDisplay.set(self.lines[8])
+                        # print(self.arousalDisplay.get(),self.activityDisplay.get(),self.heartRateDisplay.get())
+
+                        # these variables will hold the path specifying the source image of the alerts
+
+                        self.arousalAlert = self.lines[9]
+                        self.activityAlert = self.lines[10]
+                        self.heartRateAlert = self.lines[11]
 
                 #frame 1 holds the checkboxes to determine which variables to track
                 self.chkBoxFrame = LabelFrame(self.rootE,text = "Select alerts to display")
@@ -181,6 +215,8 @@ class ExpertGUI():
                 print(self.activityAlert,file = self.file)
                 print(self.heartRateAlert,file = self.file)
                 self.rootE.destroy()
+                self.file.close()
+                ExpertGUI()
 
         def pickFile(self,image):
                 if (image == self.aroAlert):
