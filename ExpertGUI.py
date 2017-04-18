@@ -1,3 +1,7 @@
+"""The purpose of this program is to run the interface used by the health professional.
+   It can only be accessed by logging in on the main gui page and is not intended for 
+   use by the patient. Using this interface, the health professional can set baselines,
+   set alert thresholds, turn on or off alert categories, and update alert images."""
 from tkinter import *
 from tkinter import filedialog
 from tkinter import messagebox
@@ -147,23 +151,38 @@ class ExpertGUI():
                 self.heaTrigger.insert(self.heartRateTrigger,self.heartRateTrigger)
 
                 # these variables will hold the actual images
-                self.imgtemp = Image.open(self.arousalAlert)
+                try:
+                        self.imgtemp = Image.open(self.arousalAlert)
+                except:
+                        print("This is not a valid image file, loading from backup")
+                        self.lines = open("backup.txt").read().split('\n')
+                        self.arousalAlert = self.lines[9]
+                        self.imgtemp = Image.open(self.arousalAlert)
+
                 self.imgtemp = self.imgtemp.resize((40, 40), Image.ANTIALIAS)
                 self.aroAlert = ImageTk.PhotoImage(self.imgtemp)
-                #self.aroImageLabel.configure(image=self.aroAlert)
-                #self.aroImageLabel.image = self.aroAlert
 
-                self.imgtemp2 = Image.open(self.activityAlert)
+                try:
+                        self.imgtemp2 = Image.open(self.activityAlert)
+                except:
+                        print("This is not a valid image file, loading from backup")
+                        self.lines = open("backup.txt").read().split('\n')
+                        self.activityAlert = self.lines[10]
+                        self.imgtemp = Image.open(self.activityAlert)
+
                 self.imgtemp2 = self.imgtemp2.resize((40, 40), Image.ANTIALIAS)
                 self.actAlert = ImageTk.PhotoImage(self.imgtemp2)
-                #self.actImageLabel.configure(image=self.actAlert)
-                #self.actImageLabel.image = self.actAlert
 
-                self.imgtemp3 = Image.open(self.heartRateAlert)
+                try:
+                        self.imgtemp3 = Image.open(self.heartRateAlert)
+                except:
+                        print("This is not a valid image file, loading from backup")
+                        self.lines = open("backup.txt").read().split('\n')
+                        self.heartRateAlert = self.lines[11]
+                        self.imgtemp = Image.open(self.heartRateAlert)
+
                 self.imgtemp3 = self.imgtemp3.resize((40, 40), Image.ANTIALIAS)
                 self.heaAlert = ImageTk.PhotoImage(self.imgtemp3)
-                #self.heaImageLabel.configure(image=self.heaAlert)
-                #self.heaImageLabel.image = self.heaAlert
 
                 #these are the images used for the alerts
                 self.aroImageLabel = Label(self.alertFrame,text = "Arousal Alert Image", image = self.aroAlert)
@@ -221,10 +240,22 @@ class ExpertGUI():
         def pickFile(self,image):
                 if (image == self.aroAlert):
                         self.arousalAlert = filedialog.askopenfilename()
+                        try:
+                                self.imgtemp = Image.open(self.arousalAlert)
+                        except:
+                                print("This is not a valid image file")
                 if(image == self.actAlert):
                         self.activityAlert = filedialog.askopenfilename()
+                        try:
+                                self.imgtemp2 = Image.open(self.activityAlert)
+                        except:
+                                print("This is not a valid image file")
                 if(image == self.heaAlert):
                         self.heartRateAlert = filedialog.askopenfilename()
+                        try:
+                                self.imgtemp3 = Image.open(self.heartRateAlert)
+                        except:
+                                print("This is not a valid image file")
 
 
 
