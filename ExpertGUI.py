@@ -236,7 +236,7 @@ class ExpertGUI():
                 print(self.heartRateBaseline,file = self.file)
                 print(self.arousalTrigger,file = self.file)
                 print(self.activityTrigger,file = self.file)
-                print(self.heartRateBaseline,file = self.file)
+                print(self.heartRateTrigger,file = self.file)
                 print(self.arousalDisplay.get(),file = self.file)
                 print(self.activityDisplay.get(),file = self.file)
                 print(self.heartRateDisplay.get(),file = self.file)
