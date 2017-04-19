@@ -120,17 +120,22 @@ class ExpertGUI():
                 self.aroEntry.pack()
                 self.aroEntry = Entry(self.baselineFrame,bd = 5)
                 self.aroEntry.pack()
-                self.aroEntry.insert(self.arousalBaseline,self.arousalBaseline)
+                self.arousalBaselineString = str(self.arousalBaseline) #convert floats and ints into strings before storing in the entry box
+                self.aroEntry.insert(0,self.arousalBaselineString)
+
                 self.actEntry = Label(self.baselineFrame,text = "Activity Baseline")
                 self.actEntry.pack()
                 self.actEntry = Entry(self.baselineFrame,bd = 5)
                 self.actEntry.pack()
-                self.actEntry.insert(self.activityBaseline,self.activityBaseline)
+                self.activityBaselineString = str(self.activityBaseline)
+                self.actEntry.insert(0,self.activityBaselineString)
+
                 self.heaEntry = Label(self.baselineFrame, text = "Heart Rate Baseline")
                 self.heaEntry.pack()
                 self.heaEntry = Entry(self.baselineFrame,bd = 5)
                 self.heaEntry.pack()
-                self.heaEntry.insert(self.heartRateBaseline,self.heartRateBaseline)
+                self.heartRateBaselineString = str(self.heartRateBaseline)
+                self.heaEntry.insert(0,self.heartRateBaselineString)
 
                 #these are the entry boxes for the alert thresholds, set automatically by the GUI
                 #using the last 3 lines from baselines.txt
@@ -138,17 +143,22 @@ class ExpertGUI():
                 self.aroThreshold.pack()
                 self.aroTrigger = Entry(self.thresholdFrame,bd = 5)
                 self.aroTrigger.pack()
-                self.aroTrigger.insert(self.arousalTrigger,self.arousalTrigger)
+                self.arousalTriggerString = str(self.arousalTrigger) #convert ints and floats to strings
+                self.aroTrigger.insert(0,self.arousalTriggerString)
+
                 self.actThreshold = Label(self.thresholdFrame, text = "Activity Alert Threshold")
                 self.actThreshold.pack()
                 self.actTrigger = Entry(self.thresholdFrame,bd = 5)
                 self.actTrigger.pack()
-                self.actTrigger.insert(self.activityTrigger,self.activityTrigger)
+                self.activityTriggerString = str(self.activityTrigger)
+                self.actTrigger.insert(0,self.activityTriggerString)
+
                 self.heaThreshold = Label(self.thresholdFrame, text = "Heart Rate Threshold")
                 self.heaThreshold.pack()
                 self.heaTrigger = Entry(self.thresholdFrame,bd = 5)
                 self.heaTrigger.pack()
-                self.heaTrigger.insert(self.heartRateTrigger,self.heartRateTrigger)
+                self.heartRateTriggerString = str(self.heartRateTrigger)
+                self.heaTrigger.insert(0,self.heartRateTriggerString)
 
                 # these variables will hold the actual images
                 try:
