@@ -41,7 +41,7 @@ class ExpertGUI():
                         self.activityDisplay.set(self.lines[7])
                         self.heartRateDisplay = IntVar()
                         self.heartRateDisplay.set(self.lines[8])
- 
+
                         #these variables will hold the path specifying the source image of the alerts
 
                         self.arousalAlert = self.lines[9]
@@ -98,7 +98,7 @@ class ExpertGUI():
                 self.alertFrame.grid(row=1,column=0)
 
                 #the update button takes values present in the fields, checks them against baselines.txt, and updates them
-                self.updateButton = Button(self.rootE, text="Update", fg="black",command = self.update)
+                self.updateButton = Button(self.rootE, text="Update", fg="black",command = lambda: self.update(0))
                 self.updateButton.grid(row = 3,column = 0)
 
                 #these are the checkboxes which set which variables to display alerts for
@@ -217,10 +217,12 @@ class ExpertGUI():
                                               command = lambda: self.pickFile(self.heaAlert))
                 self.heartRateButton.grid(column = 1,row = 2)
 
+                #bind the enter key to the update button, so the user can just hit enter instead of pressing the button
+                self.rootE.bind('<Return>', self.update)
                 self.rootE.mainloop()
 
         #this is the update method, which gets called when the user presses the update button
-        def update(self):
+        def update(self,a):
                 #if the baselines or triggers are different from the ones in the file
                 #they get saved and the file gets updated
 
