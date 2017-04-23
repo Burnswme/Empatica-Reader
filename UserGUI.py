@@ -74,9 +74,16 @@ class UsrGUI():
         self.dayLbl = Label(self.rootu, width = self.w, text = 'Day').grid(row = 0, column = 0)
 
 # buttons to select which metric is displayed
-        self.selhr = Button(self.rootu, text = 'Heart rate', command = self.sethrdisplay).grid(row = 1,column = 26)
-        self.selacc = Button(self.rootu, text = 'Activity (default)', command = self.setaccdisplay).grid(row = 2,column = 26)
-        self.seleda = Button(self.rootu, text = 'Arousal', command = self.setedadisplay).grid(row = 3,column = 26)
+        self.selhr = Button(self.rootu, text = 'Heart rate', command = self.sethrdisplay).grid(row = 0,column = 26)
+        self.selacc = Button(self.rootu, text = 'Activity (default)', command = self.setaccdisplay).grid(row = 1,column = 26)
+        self.seleda = Button(self.rootu, text = 'Arousal', command = self.setedadisplay).grid(row = 2,column = 26)
+
+# key for the colors
+        self.blue = Label(self.rootu, bg = '#2B5E9F', text = 'very low reading').grid(row = 7, column = 26)
+        self.lblue = Label(self.rootu, bg = '#6F9FDC', text = 'low reading').grid(row = 6, column = 26)
+        self.green = Label(self.rootu, bg = '#3ED748', text = 'good reading').grid(row =5, column = 26)
+        self.orange = Label(self.rootu, bg = '#F2B43A', text = 'high reading').grid(row = 4, column = 26)
+        self.red = Label(self.rootu, bg = '#FF0000', text = 'very high reading').grid(row = 3, column = 26)
 
 
 
@@ -104,7 +111,7 @@ class UsrGUI():
         i = 0
         while i <=6:
             d = datetime.datetime.fromtimestamp(dnum).strftime('%m-%d') # convert unix timestamp into readable date
-            self.datematrix[i] = Label(self.daysCanvas, text = d, width = self.w)\
+            self.datematrix[i] = Label(self.daysCanvas, text = d, width = self.w, height = self.w)\
                 .grid(row = i+1, column = 0, stick = 'nsew')
             i += 1
             dnum += 86400
@@ -156,7 +163,7 @@ class UsrGUI():
         # set unix timestamp from day/hour
         work = True
         # pull necessary data
-        com = ('SELECT ACC, HR, EDA from data WHERE date = '+str(self.ti)+';')
+        com = ('SELECT ACC, HR, EDA, ACCalert, HRalert, EDAalert from data WHERE date = '+str(self.ti)+';')
 
         try:
             self.cursor.execute(com)
@@ -174,6 +181,10 @@ class UsrGUI():
             self.ACC = float(datatuple[0])
             self.HR = float(datatuple[1])
             self.EDA = float(datatuple[2])
+            ACCal = float(datatuple[3])
+            HRal = float(datatuple[4])
+            EDAal = float(datatuple[5])
+
 
             # Activiy set
             if self.metric == 'ACC':
@@ -197,7 +208,7 @@ class UsrGUI():
                 else:
                     tcolor = '#FF0000'
                 # check whether to set alert or not
-                if (self.ACC < low or self.ACC > high) and self.ACC != 0:
+                if (ACCal == 1) and self.ACC != 0:
                     temp = Image.open(self.accimg)
                     temp = temp.resize((40, 40), Image.ANTIALIAS)
                     self.image[x][y] = ImageTk.PhotoImage(temp)
@@ -227,7 +238,7 @@ class UsrGUI():
                 else:
                     tcolor = '#FF0000'
                 # check whether to set alert
-                if (self.HR < low or self.HR > high) and self.HR != 0:
+                if (HRal == 1) and self.HR != 0:
                     temp = Image.open(self.hrimg)
                     temp = temp.resize((40, 40), Image.ANTIALIAS)
                     self.image[x][y] = ImageTk.PhotoImage(temp)
@@ -257,7 +268,7 @@ class UsrGUI():
                 else:
                     tcolor = '#FF0000'
                 # check whether to set alert or not
-                if (self.EDA < low or self.EDA > high) and self.EDA != 0:
+                if (EDAal == 1) and self.EDA != 0:
                     temp = Image.open(self.arrimg)
                     temp = temp.resize((40, 40), Image.ANTIALIAS)
                     self.image[x][y] = ImageTk.PhotoImage(temp)
