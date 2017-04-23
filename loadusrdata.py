@@ -14,6 +14,29 @@ class loadDataGUI():
 
     cursor = connection.cursor()
 
+    baselines = open('baselines.txt', 'r').read().split('\n')
+    # baselines
+    arrbase = float(baselines[0])
+    accbase = float(baselines[1])
+    hrbase = float(baselines[2])
+    # thresholds
+    arrthresh = float(baselines[3])
+    accthresh = float(baselines[4])
+    hrthresh = float(baselines[5])
+    # if display alert
+    arrdis = float(baselines[6])
+    accdis = float(baselines[7])
+    hrdis = float(baselines[8])
+
+    acclow = accbase - accbase * accthresh
+    acchigh = accbase + accbase * accthresh
+
+    hrlow = hrbase - hrbase * hrthresh
+    hrhigh = hrbase + hrbase * hrthresh
+
+    arrlow = arrbase - arrbase * arrthresh
+    arrhigh = arrbase + arrbase * arrthresh
+
     def __init__(self):
         self.datawin = Tk()
 
@@ -36,42 +59,45 @@ class loadDataGUI():
         self.datawin.destroy()
 
     def open(self):
-        self.path = filedialog.askdirectory()
-        self.activity = open(self.path + "/ACC.csv")
-        self.heartRate = open(self.path + "/HR.csv")
-        self.arousal = open(self.path + "/EDA.csv")
+        try:
+            self.path = filedialog.askdirectory()
+            self.activity = open(self.path + "/ACC.csv")
+            self.heartRate = open(self.path + "/HR.csv")
+            self.arousal = open(self.path + "/EDA.csv")
 
-        self.hrarr = self.heartRate.read().split("\n")
-        self.accarr = self.activity.read().split("\n")
-        self.arousalarr = self.arousal.read().split("\n")
+            self.hrarr = self.heartRate.read().split("\n")
+            self.accarr = self.activity.read().split("\n")
+            self.arousalarr = self.arousal.read().split("\n")
 
-        # to put timestamp to next lowest hour
-        stime = int(float(self.hrarr[0])) % 3600
-        stime = int(float(self.hrarr[0])) - stime
+            # to put timestamp to next lowest hour
+            stime = int(float(self.hrarr[0])) % 3600
+            stime = int(float(self.hrarr[0])) - stime
 
 
-        # fills any missing dates with 0
-        self.fill(self.hrarr[0])
+            # fills any missing dates with 0
+            self.fill(self.hrarr[0])
 
-        etime = len(self.hrarr) // 3600
-        etime = etime*3600 + stime                  #number of hours in file
+            etime = len(self.hrarr) // 3600
+            etime = etime*3600 + stime                  #number of hours in file
 
-        while stime <= etime:
-            try:
-                exe = 'INSERT INTO data (date) VALUES ('+str(stime)+');'
-                self.cursor.execute(exe)
-                self.connection.commit()
-            except:
-                self.connection.rollback()
+            while stime <= etime:
+                try:
+                    exe = 'INSERT INTO data (date) VALUES ('+str(stime)+');'
+                    self.cursor.execute(exe)
+                    self.connection.commit()
+                except:
+                    self.connection.rollback()
 
-            stime += 3600
+                stime += 3600
 
-        # call the methods to compile the data from the files
-        self.dbavger(self.hrarr)
-        self.dbavger(self.arousalarr)
-        self.accavg(self.accarr)
-        messagebox.showinfo(title = 'Confirm', message = 'Uploaded!')
+            # call the methods to compile the data from the files
+            self.dbavger(self.hrarr)
+            self.dbavger(self.arousalarr)
+            self.accavg(self.accarr)
+            messagebox.showinfo(title='Confirm', message='Uploaded!')
 
+        except:
+           messagebox.showinfo(title = 'Error', message = 'Invalid folder selected')
     # method to fill missing rows of db
     def fill(self, dat):
         # find start of file to know how much to fill
@@ -95,17 +121,20 @@ class loadDataGUI():
             num = num + 3600
 
     # commits data to data base
-    def commitdb(self, ar, st):
+    def commitdb(self, ar, st, al):
         i = 0
+
+        at = st+'alert'
 
         # to put timestamp to next lowest hour
         time = int(float(self.hrarr[0])) % 3600
         time = int(float(self.hrarr[0])) - time + 3600
 
+
         # inserts all values from array to database
         while (i < len(ar)):
             try:
-                com = 'UPDATE data SET ' + st + '=' + str(ar[i]) + ' WHERE date = '+str(time)+';'
+                com = 'UPDATE data SET ' + st + '=' + str(ar[i]) + ', ' + at + '=' + str(al[i]) + ' WHERE date = ' + str(time) + ';'
                 self.cursor.execute(com)
                 self.connection.commit()
             except:
@@ -114,7 +143,7 @@ class loadDataGUI():
             time = time + 3600
 
     def dbavger(self, ary):
-        # first we pull the timestamp and smaple rate from file
+        # first we pull the timestamp and sample rate from file
         timestamp = int(float(ary[0]) % 3600)
         sampleRate = int(float(ary[1]))
         arrayIndex = 0
@@ -125,6 +154,8 @@ class loadDataGUI():
         timestamp = float(ary[0])+(timestamp-3600)
         counter = 0  # will hold measurements per hour, used in inner loop
         returnVal = []
+        alert = []
+        boo = 0
         type = ""
         sum = 0
         divisor = 0  # will hold duplicate of counter, not changed in loop
@@ -154,15 +185,19 @@ class loadDataGUI():
             sum = 0
             while (counter > 0):
                 sum += float(ary[arrayIndex])  # array index increments by ten to reduce number of calculations
+                if self.isalert(float(ary[arrayIndex]), type):
+                    boo = 1
+                    print(ary[arrayIndex], type, self.arrhigh, self.arrlow, self.hrhigh, self.hrlow, self.acchigh, self.acclow)
                 arrayIndex += 10
                 counter -= 1
             average = sum / divisor
             returnVal.append(average)  # store the average for this hour in the return array
+            alert.append(boo)
             counter = divisor
             hours += 1
 
         # commit list to db
-        self.commitdb(returnVal, type)
+        self.commitdb(returnVal, type, alert)
 
     # special case averager for the ACC file, since it uses three columns and 3D measurements
     def accavg(self, acclist):
@@ -175,10 +210,13 @@ class loadDataGUI():
         # then we cut partial hours off the front
         if (timestamp > 0):
             arrayIndex = timestamp * sampleRate
+
         # set timestamp to first full hour of data
         timestamp = float(timerow[0])+(timestamp-3600)
         counter = 11520  # holds number of measurements per hour, used in inner loop
         returnVal = []
+        alert = []
+        boo = 0
         type = 'ACC'
         sum = 0
         divisor = 11520  # duplicate of counter, not changed in loop
@@ -207,14 +245,31 @@ class loadDataGUI():
 
                 magnitude = (x+y+z)**(.5)
 
+
+                if self.isalert(magnitude, type):
+                    boo = 1
+                    print(magnitude, type, self.arrhigh, self.arrlow, self.hrhigh, self.hrlow, self.acchigh, self.acclow)
+
+
                 sum += magnitude
                 arrayIndex += 10  # of the values are collected
                 counter -= 1
             average = sum / divisor
             #print(sum,average,divisor)
             returnVal.append(average)  # store the average for this hour in the return array
+            alert.append(boo)
             counter = divisor
             hours += 1
 
         # commit list to db
-        self.commitdb(returnVal, type)
+        self.commitdb(returnVal, type, alert)
+
+    def isalert(self,p,ty):
+        if ty == 'EDA' and self.arrdis == 1 and (p > self.arrhigh or p < self.arrlow):
+            return True
+        elif ty == 'HR' and self.hrdis == 1 and (p > self.hrhigh or p < self.hrlow):
+            return True
+        elif ty == 'ACC' and self.accdis == 1 and (p > self.acchigh or p < self.acclow):
+            return True
+        else:
+            return False
