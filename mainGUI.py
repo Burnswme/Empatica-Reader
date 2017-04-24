@@ -59,7 +59,7 @@ class LogInTk():
         self.pwdLbl = ttk.Label(self.win, text='Password')
         self.usrIdEntry = ttk.Entry(self.win, width=20)
         self.pwdEntry = ttk.Entry(self.win, width=20, show = '*')
-        self.submit = ttk.Button(self.win, text="Submit", command = self.getData)
+        self.submit = ttk.Button(self.win, text="Submit", command = lambda: self.getData('a'))
 
         self.setFields()
 

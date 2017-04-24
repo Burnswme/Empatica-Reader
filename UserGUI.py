@@ -1,6 +1,6 @@
 #import tkinter and pymysql for database interaction
 from tkinter import *
-import pymysql
+import sqlite3
 import datetime
 from PIL import Image, ImageTk
 
@@ -11,40 +11,38 @@ class UsrGUI():
     OFFSET = 3600*4
 
     # database connection
-    connection = pymysql.connect(host='localhost',
-                                      user='root',
-                                      password='pswd',
-                                      db='empaticareader')
+    connection = sqlite3.connect("empaticareader.db")
 
     cursor = connection.cursor()
 
     # pull most recent date to start from
-    com = 'SELECT max(date) from data'
+    com = 'SELECT max(date) from data;'
     cursor.execute(com)
+
     pull = cursor.fetchone()
     startdate = int(pull[0])
     #set recdate to one week ago from the most recent date
     recdate = startdate - startdate % DAY
     recdate = recdate - 518400
+
     ti = recdate - OFFSET
     # get data form baselines file then store in variables for clarity
-    baselines = open('baselines.txt', 'r').read().split('\n')
     # baselines
-    arrbase = float(baselines[0])
-    accbase = float(baselines[1])
-    hrbase = float(baselines[2])
+    arrbase = 0
+    accbase = 0
+    hrbase = 0
     # thresholds
-    arrthresh = float(baselines[3])
-    accthresh = float(baselines[4])
-    hrthresh = float(baselines[5])
+    arrthresh = 0
+    accthresh = 0
+    hrthresh = 0
     # if display alert
-    arrdis = float(baselines[6])
-    accdis = float(baselines[7])
-    hrdis = float(baselines[8])
+    arrdis = 0
+    accdis = 0
+    hrdis = 0
     # image paths
-    arrimg = baselines[9]
-    accimg = baselines[10]
-    hrimg = baselines[11]
+    arrimg = ''
+    accimg = ''
+    hrimg = ''
 
     # set in setcolor method, used in setalert
     ACC = 0
@@ -74,20 +72,29 @@ class UsrGUI():
         self.dayLbl = Label(self.rootu, width = self.w, text = 'Day').grid(row = 0, column = 0)
 
 # buttons to select which metric is displayed
-        self.selhr = Button(self.rootu, text = 'Heart rate', command = self.sethrdisplay).grid(row = 0,column = 26)
-        self.selacc = Button(self.rootu, text = 'Activity (default)', command = self.setaccdisplay).grid(row = 1,column = 26)
-        self.seleda = Button(self.rootu, text = 'Arousal', command = self.setedadisplay).grid(row = 2,column = 26)
+        self.selhr = Button(self.rootu, text = 'Heart rate', command = self.sethrdisplay).grid(row = 1,column = 26)
+        self.selacc = Button(self.rootu, text = 'Activity (default)', command = self.setaccdisplay).grid(row = 2,column = 26)
+        self.seleda = Button(self.rootu, text = 'Arousal', command = self.setedadisplay).grid(row = 3,column = 26)
 
-# key for the colors
-        self.blue = Label(self.rootu, bg = '#2B5E9F', text = 'very low reading').grid(row = 7, column = 26)
-        self.lblue = Label(self.rootu, bg = '#6F9FDC', text = 'low reading').grid(row = 6, column = 26)
-        self.green = Label(self.rootu, bg = '#3ED748', text = 'good reading').grid(row =5, column = 26)
-        self.orange = Label(self.rootu, bg = '#F2B43A', text = 'high reading').grid(row = 4, column = 26)
-        self.red = Label(self.rootu, bg = '#FF0000', text = 'very high reading').grid(row = 3, column = 26)
+        self.baselines = open('baselines.txt', 'r').read().split('\n')
+        # baselines
+        self.arrbase = float(self.baselines[0])
+        self.accbase = float(self.baselines[1])
+        self.hrbase = float(self.baselines[2])
+        # thresholds
+        self.arrthresh = float(self.baselines[3])
+        self.accthresh = float(self.baselines[4])
+        self.hrthresh = float(self.baselines[5])
+        # if display alert
+        self.arrdis = float(self.baselines[6])
+        self.accdis = float(self.baselines[7])
+        self.hrdis = float(self.baselines[8])
+        # image paths
+        self.arrimg = self.baselines[9]
+        self.accimg = self.baselines[10]
+        self.hrimg = self.baselines[11]
 
-
-
-# colored hour labels for canvas
+        # colored hour labels for canvas
         self.displayMatrix = [[0 for x in range(24)]for y in range(7)]
 
         i = 0
@@ -111,7 +118,7 @@ class UsrGUI():
         i = 0
         while i <=6:
             d = datetime.datetime.fromtimestamp(dnum).strftime('%m-%d') # convert unix timestamp into readable date
-            self.datematrix[i] = Label(self.daysCanvas, text = d, width = self.w, height = self.w)\
+            self.datematrix[i] = Label(self.daysCanvas, text = d, width = self.w)\
                 .grid(row = i+1, column = 0, stick = 'nsew')
             i += 1
             dnum += 86400
@@ -163,7 +170,7 @@ class UsrGUI():
         # set unix timestamp from day/hour
         work = True
         # pull necessary data
-        com = ('SELECT ACC, HR, EDA, ACCalert, HRalert, EDAalert from data WHERE date = '+str(self.ti)+';')
+        com = ('SELECT ACC, HR, EDA from data WHERE date = '+str(self.ti)+';')
 
         try:
             self.cursor.execute(com)
@@ -181,10 +188,6 @@ class UsrGUI():
             self.ACC = float(datatuple[0])
             self.HR = float(datatuple[1])
             self.EDA = float(datatuple[2])
-            ACCal = float(datatuple[3])
-            HRal = float(datatuple[4])
-            EDAal = float(datatuple[5])
-
 
             # Activiy set
             if self.metric == 'ACC':
@@ -208,7 +211,7 @@ class UsrGUI():
                 else:
                     tcolor = '#FF0000'
                 # check whether to set alert or not
-                if (ACCal == 1) and self.ACC != 0:
+                if (self.ACC < low or self.ACC > high) and self.ACC != 0:
                     temp = Image.open(self.accimg)
                     temp = temp.resize((40, 40), Image.ANTIALIAS)
                     self.image[x][y] = ImageTk.PhotoImage(temp)
@@ -238,7 +241,7 @@ class UsrGUI():
                 else:
                     tcolor = '#FF0000'
                 # check whether to set alert
-                if (HRal == 1) and self.HR != 0:
+                if (self.HR < low or self.HR > high) and self.HR != 0:
                     temp = Image.open(self.hrimg)
                     temp = temp.resize((40, 40), Image.ANTIALIAS)
                     self.image[x][y] = ImageTk.PhotoImage(temp)
@@ -268,7 +271,7 @@ class UsrGUI():
                 else:
                     tcolor = '#FF0000'
                 # check whether to set alert or not
-                if (EDAal == 1) and self.EDA != 0:
+                if (self.EDA < low or self.EDA > high) and self.EDA != 0:
                     temp = Image.open(self.arrimg)
                     temp = temp.resize((40, 40), Image.ANTIALIAS)
                     self.image[x][y] = ImageTk.PhotoImage(temp)

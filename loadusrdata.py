@@ -1,41 +1,39 @@
 from tkinter import filedialog
 from tkinter import *
 from tkinter import ttk
-import pymysql
+import sqlite3
 from tkinter import messagebox
 
 
 class loadDataGUI():
-    # establish db connection to be used
-    connection = pymysql.connect(host='localhost',
-                                 user='root',
-                                 password='pswd',
-                                 db='empaticareader')
+    # attempt to establish db connection to be used
+    connection = sqlite3.connect("empaticareader.db")
 
     cursor = connection.cursor()
 
-    baselines = open('baselines.txt', 'r').read().split('\n')
+
+
     # baselines
-    arrbase = float(baselines[0])
-    accbase = float(baselines[1])
-    hrbase = float(baselines[2])
+    arrbase = 0
+    accbase = 0
+    hrbase = 0
     # thresholds
-    arrthresh = float(baselines[3])
-    accthresh = float(baselines[4])
-    hrthresh = float(baselines[5])
+    arrthresh = 0
+    accthresh = 0
+    hrthresh = 0
     # if display alert
-    arrdis = float(baselines[6])
-    accdis = float(baselines[7])
-    hrdis = float(baselines[8])
+    arrdis = 0
+    accdis = 0
+    hrdis = 0
 
-    acclow = accbase - accbase * accthresh
-    acchigh = accbase + accbase * accthresh
+    acclow = 0
+    acchigh = 0
 
-    hrlow = hrbase - hrbase * hrthresh
-    hrhigh = hrbase + hrbase * hrthresh
+    hrlow = 0
+    hrhigh = 0
 
-    arrlow = arrbase - arrbase * arrthresh
-    arrhigh = arrbase + arrbase * arrthresh
+    arrlow = 0
+    arrhigh = 0
 
     def __init__(self):
         self.datawin = Tk()
@@ -55,49 +53,72 @@ class loadDataGUI():
 
         self.datawin.mainloop()
 
+        self.baselines = open('baselines.txt', 'r').read().split('\n')
+        # baselines
+        self.arrbase = float(self.baselines[0])
+        self.accbase = float(self.baselines[1])
+        self.hrbase = float(self.baselines[2])
+        # thresholds
+        self.arrthresh = float(self.baselines[3])
+        self.accthresh = float(self.baselines[4])
+        self.hrthresh = float(self.baselines[5])
+        # if display alert
+        self.arrdis = float(self.baselines[6])
+        self.accdis = float(self.baselines[7])
+        self.hrdis = float(self.baselines[8])
+
+        self.acclow = self.accbase - self.accbase * self.accthresh
+        self.acchigh = self.accbase + self.accbase * self.accthresh
+
+        self.hrlow = self.hrbase - self.hrbase * self.hrthresh
+        self.hrhigh = self.hrbase + self.hrbase * self.hrthresh
+
+        self.arrlow = self.arrbase - self.arrbase * self.arrthresh
+        self.arrhigh = self.arrbase + self.arrbase * self.arrthresh
+
     def close(self):
         self.datawin.destroy()
 
     def open(self):
-        try:
-            self.path = filedialog.askdirectory()
-            self.activity = open(self.path + "/ACC.csv")
-            self.heartRate = open(self.path + "/HR.csv")
-            self.arousal = open(self.path + "/EDA.csv")
+        #try:
+        self.path = filedialog.askdirectory()
+        self.activity = open(self.path + "/ACC.csv")
+        self.heartRate = open(self.path + "/HR.csv")
+        self.arousal = open(self.path + "/EDA.csv")
 
-            self.hrarr = self.heartRate.read().split("\n")
-            self.accarr = self.activity.read().split("\n")
-            self.arousalarr = self.arousal.read().split("\n")
+        self.hrarr = self.heartRate.read().split("\n")
+        self.accarr = self.activity.read().split("\n")
+        self.arousalarr = self.arousal.read().split("\n")
 
-            # to put timestamp to next lowest hour
-            stime = int(float(self.hrarr[0])) % 3600
-            stime = int(float(self.hrarr[0])) - stime
+        # to put timestamp to next lowest hour
+        stime = int(float(self.hrarr[0])) % 3600
+        stime = int(float(self.hrarr[0])) - stime
 
 
-            # fills any missing dates with 0
-            self.fill(self.hrarr[0])
+        # fills any missing dates with 0
+        self.fill(self.hrarr[0])
 
-            etime = len(self.hrarr) // 3600
-            etime = etime*3600 + stime                  #number of hours in file
+        etime = len(self.hrarr) // 3600
+        etime = etime*3600 + stime                  #number of hours in file
 
-            while stime <= etime:
-                try:
-                    exe = 'INSERT INTO data (date) VALUES ('+str(stime)+');'
-                    self.cursor.execute(exe)
-                    self.connection.commit()
-                except:
-                    self.connection.rollback()
+        while stime <= etime:
+            try:
+                exe = 'INSERT INTO data (date) VALUES ('+str(stime)+');'
+                self.cursor.execute(exe)
+                self.connection.commit()
+            except:
+                self.connection.rollback()
 
-                stime += 3600
+            stime += 3600
 
-            # call the methods to compile the data from the files
-            self.dbavger(self.hrarr)
-            self.dbavger(self.arousalarr)
-            self.accavg(self.accarr)
-            messagebox.showinfo(title='Confirm', message='Uploaded!')
+        # call the methods to compile the data from the files
+        self.dbavger(self.hrarr)
+        self.dbavger(self.arousalarr)
+        self.accavg(self.accarr)
+        messagebox.showinfo(title='Confirm', message='Uploaded!')
 
-        except:
-           messagebox.showinfo(title = 'Error', message = 'Invalid folder selected')
+        #except:
+         #  messagebox.showinfo(title = 'Error', message = 'Invalid folder selected')
     # method to fill missing rows of db
     def fill(self, dat):
         # find start of file to know how much to fill
@@ -187,7 +208,6 @@ class loadDataGUI():
                 sum += float(ary[arrayIndex])  # array index increments by ten to reduce number of calculations
                 if self.isalert(float(ary[arrayIndex]), type):
                     boo = 1
-                    print(ary[arrayIndex], type, self.arrhigh, self.arrlow, self.hrhigh, self.hrlow, self.acchigh, self.acclow)
                 arrayIndex += 10
                 counter -= 1
             average = sum / divisor
@@ -248,14 +268,12 @@ class loadDataGUI():
 
                 if self.isalert(magnitude, type):
                     boo = 1
-                    print(magnitude, type, self.arrhigh, self.arrlow, self.hrhigh, self.hrlow, self.acchigh, self.acclow)
 
 
                 sum += magnitude
                 arrayIndex += 10  # of the values are collected
                 counter -= 1
             average = sum / divisor
-            #print(sum,average,divisor)
             returnVal.append(average)  # store the average for this hour in the return array
             alert.append(boo)
             counter = divisor

@@ -5,8 +5,6 @@
 
 from tkinter import *
 from tkinter import filedialog
-from tkinter import messagebox
-from tkinter import ttk
 #from PIL.Image import core as _imaging
 from PIL import Image, ImageTk
 
