@@ -1,3 +1,6 @@
+"""This is the main GUI. It houses the buttons to access the other features of the program.
+   From this GUI, the user can load data into the database, view the data in the database,
+   or log in to the expert GUI and set the baselines or thresholds."""
 #import tkinter
 from tkinter import *
 from tkinter import ttk
@@ -6,6 +9,11 @@ import loadusrdata
 import ExpertGUI
 import UserGUI
 
+# This variable will allow the user to remain logged in to the expert GUI
+# 0 means the user is not logged in, anything else means they are logged in
+loggedIn = 0
+
+# Set up the main window
 def main():
     root = Tk()
 
@@ -13,35 +21,54 @@ def main():
 
     root.title("Empatica Reader")
 
-    loginButton = ttk.Button(root, text = "Login as admin",command = adminLogin)
+# This the the button to log in to the expert GUI
+# The function passes the username and password variables to adminLogin
+    global loggedIn
+
+    loginButton = ttk.Button(root, text = "Login as admin",command = lambda: adminLogin())
     loginButton.place(relx = 1, x = -10, y = 10, rely = 0, anchor = 'ne')
 
-    load = ttk.Button(root, text = "input data", command = loaddata)
+# This is the button to load data into the database
+    load = ttk.Button(root, text = "Input data", command = loaddata)
     load.place(relx = .5, rely = .5, anchor = 's')
 
+# This is the button to see the data in the database
     input = ttk.Button(root, text = "See Your Data", command = loadUsrGUI)
     input.place(relx = .5, rely = 1, anchor = 's')
 
     root.mainloop()
 
+# This function opens the user GUI
 def loadUsrGUI():
     usr = UserGUI.UsrGUI('ACC')
 
-
+# This function opens the login window to access the expert GUI
 def adminLogin():
-    loginWindow = LogInTk()
+    global loggedIn
+    if(loggedIn == 0):
+        loginWindow = LogInTk()
+    else:
+        exp = loginAlt()
 
+
+
+# This function loads data into the database
 def loaddata():
     loadGUI = loadusrdata.loadDataGUI()
 
 def login(loginWindow):
     usrid = loginWindow.getUsrId()
     pwd = loginWindow.getPwd()
-
     if (usrid == 'hello' and pwd == 'world'):
+        setLoggedIn()
         expGUI = ExpertGUI.ExpertGUI()
     else :
         messagebox.showinfo(title = 'Error', message = 'wrong login')
+def loginAlt():
+    expGUI = ExpertGUI.ExpertGUI()
+def setLoggedIn():
+    global loggedIn
+    loggedIn = 1
 
 #login popup for admin
 class LogInTk():
