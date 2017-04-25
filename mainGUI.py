@@ -35,6 +35,10 @@ def main():
 # This is the button to see the data in the database
     input = ttk.Button(root, text = "See Your Data", command = loadUsrGUI)
     input.place(relx = .5, rely = 1, anchor = 's')
+      
+# database dump button
+    dumpB = ttk.Button(root, text = "Clear data", command = dump)
+    dumpB.place(relx = 0,rely = 0, x = 10, y = 10, anchor = 'nw')
 
     root.mainloop()
 
@@ -69,6 +73,15 @@ def loginAlt():
 def setLoggedIn():
     global loggedIn
     loggedIn = 1
+   
+# clears the data in the DB
+def dump():
+    print('dumping')
+    # database connection
+    connection = sqlite3.connect("empaticareader.db")
+
+    cursor = connection.cursor()
+
 
 #login popup for admin
 class LogInTk():
