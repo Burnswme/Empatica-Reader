@@ -11,20 +11,6 @@ class UsrGUI():
     HOUR = 3600
     OFFSET = 3600*4
 
-    # database connection
-    connection = sqlite3.connect("empaticareader.db")
-
-    cursor = connection.cursor()
-
-    # pull most recent date to start from
-    com = 'SELECT max(date) from data'
-    cursor.execute(com)
-    pull = cursor.fetchone()
-    startdate = int(pull[0])
-    #set recdate to one week ago from the most recent date
-    recdate = startdate - startdate % DAY
-    recdate = recdate - 518400
-    ti = recdate - OFFSET
 
     # baselines
     arrbase = 0
@@ -60,11 +46,29 @@ class UsrGUI():
     # holds all our images and colors if they need to be on the label
     image = [[0 for x in range(24)]for y in range(7)]
     color = [[0 for x in range(24)]for y in range(7)]
+    avg =   [[0 for x in range(24)]for y in range(7)]
 
     # holds width for all labels
     w = 5
 
     def __init__(self, metric):
+
+        # database connection
+        self.connection = sqlite3.connect("empaticareader.db")
+
+        self.cursor = self.connection.cursor()
+
+        # pull most recent date to start from
+        com = 'SELECT max(date) from data'
+        self.cursor.execute(com)
+        pull = self.cursor.fetchone()
+        startdate = int(pull[0]) - self.OFFSET
+        # set recdate to one week ago from the most recent date
+        self.recdate = startdate - startdate % self.DAY
+        self.recdate = self.recdate - 518400
+        self.ti = self.recdate
+        self.ti = self.ti - (self.ti%86400)
+
 
         self.metric = metric
 
@@ -80,8 +84,8 @@ class UsrGUI():
         self.dayLbl = Label(self.daysCanvas, width = self.w, text = 'Day').grid(row = 0, column = 0)
 
 # buttons to select which metric is displayed
-        self.selhr = ttk.Button(self.rootu, text = 'Heart rate', command = self.sethrdisplay).grid(row = 0,column = 26)
-        self.selacc = ttk.Button(self.rootu, text = 'Activity (default)', command = self.setaccdisplay).grid(row = 1,column = 26)
+        self.selhr = ttk.Button(self.rootu, text = 'Heart rate (default)', command = self.sethrdisplay).grid(row = 0,column = 26)
+        self.selacc = ttk.Button(self.rootu, text = 'Activity', command = self.setaccdisplay).grid(row = 1,column = 26)
         self.seleda = ttk.Button(self.rootu, text = 'Arousal', command = self.setedadisplay).grid(row = 2,column = 26)
 
 # key for the colors
@@ -139,7 +143,7 @@ class UsrGUI():
 
 # date labels on left side
         self.datematrix = [0 for x in range(7)]
-        dnum = self.recdate + 3600
+        dnum = self.recdate
         i = 0
         while i <=6:
             d = datetime.datetime.fromtimestamp(dnum).strftime('%m-%d') # convert unix timestamp into readable date
@@ -194,6 +198,7 @@ class UsrGUI():
     def setColor(self,x,y):
         # set unix timestamp from day/hour
         work = True
+
         # pull necessary data
         com = ('SELECT ACC, HR, EDA, ACCalert, HRalert, EDAalert from data WHERE date = '+str(self.ti)+';')
 
@@ -219,11 +224,15 @@ class UsrGUI():
 
             # Activity set
             if self.metric == 'ACC':
-            # low holds the lower 25%, midd holds second 25%, high holds the higher 25%
-                quarter = (self.accmax - self.accmin)*.05
-                low = self.accmin + quarter
-                midd = low + quarter
-                high = midd + quarter
+                self.avg[x][y] = '%.2f'%float(self.ACC)
+                # low limits darkblue values , midd limits light blue values, high limits green values
+                # we use nexthigh to limit orange values, anything over nexthigh is red
+                perc = 3
+                low = 87
+                midd = low + perc
+                high = midd + perc
+                nexthigh = high + perc +perc
+
 
             # below lower is blue(with alert)
                 if self.ACC<low:
@@ -232,7 +241,7 @@ class UsrGUI():
                 elif self.ACC<midd:
                     tcolor = '#6F9FDC'
             # within half of threshold is green
-                elif self.ACC<self.accmax:
+                elif self.ACC<nexthigh:
                     tcolor = '#3ED748'
             # from half to upper is orange
                 elif self.ACC<high:
@@ -243,18 +252,22 @@ class UsrGUI():
                 # check whether to set alert or not
                 if (ACCal == 1) and self.ACC != 0:
                     temp = Image.open(self.accimg)
-                    temp = temp.resize((40, 40), Image.ANTIALIAS)
+                    temp = temp.resize((35, 35), Image.ANTIALIAS)
                     self.image[x][y] = ImageTk.PhotoImage(temp)
                 else:
                     self.image[x][y] = ''
 
             # Heart rate set
             elif self.metric == 'HR':
-                # low holds the lower 25%, midd holds second 25%, high holds the higher 25%
-                quarter = (self.hrmax - self.hrmin)*.05
-                low = self.hrmin + quarter
-                midd = low + quarter
-                high = midd + quarter
+                self.avg[x][y] = '%.2f'%float(self.HR)
+                # low limits darkblue values , midd limits light blue values, high limits green values
+                # we use nexthigh to limit orange values, anything over nexthigh is red
+                perc = (self.hrmax - self.hrmin)*.05
+                low = self.hrmin + perc*2
+                midd = low + perc
+                high = midd + perc
+                nexthigh = high + perc
+
 
                 # below lower is blue(with alert)
                 if self.HR < low:
@@ -266,7 +279,7 @@ class UsrGUI():
                 elif self.HR < high:
                     tcolor = '#3ED748'
                     # from half to upper is orange
-                elif self.HR < self.hrmax:
+                elif self.HR < nexthigh:
                     tcolor = '#F2B43A'
                     # above upper is red (with alert)
                 else:
@@ -274,19 +287,21 @@ class UsrGUI():
                 # check whether to set alert
                 if (HRal == 1) and self.HR != 0:
                     temp = Image.open(self.hrimg)
-                    temp = temp.resize((40, 40), Image.ANTIALIAS)
+                    temp = temp.resize((35, 35), Image.ANTIALIAS)
                     self.image[x][y] = ImageTk.PhotoImage(temp)
                 else:
                     self.image[x][y] = ''
 
             # Arousal set
             elif self.metric == 'EDA':
-                # low holds the lower 5% , midd second 5%, high holds the highest 5%
-                # we use 5% here because of how small the averages are for EDA data
+                self.avg[x][y] = '%.2f'%float(self.EDA)
+                # low limits darkblue values , midd limits light blue values, high limits green values
+                # we use nexthigh to limit orange values, anything over nexthigh is red
                 perc = (self.arrmax - self.arrmin)*.015
                 low = self.arrmin + perc
                 midd = low + perc
                 high = midd + perc
+                nexthigh = high + perc
 
                 # below lower is blue(with alert)
                 if self.EDA < low:
@@ -298,7 +313,7 @@ class UsrGUI():
                 elif self.EDA < high:
                     tcolor = '#3ED748'
                     # from half to upper is orange
-                elif self.EDA < self.arrmax:
+                elif self.EDA < nexthigh:
                     tcolor = '#F2B43A'
                     # above upper is red (with alert)
                 else:
@@ -306,14 +321,16 @@ class UsrGUI():
                 # check whether to set alert or not
                 if (EDAal == 1) and self.EDA != 0:
                     temp = Image.open(self.arrimg)
-                    temp = temp.resize((40, 40), Image.ANTIALIAS)
+                    temp = temp.resize((35, 35), Image.ANTIALIAS)
                     self.image[x][y] = ImageTk.PhotoImage(temp)
                 else:
                     self.image[x][y] = ''
 
             if (self.ACC == 0 and self.HR == 0 and self.EDA == 0):
+                self.avg[x][y] = ''
                 tcolor = 'gray'
 
         else:
+            self.avg[x][y] = ''
             tcolor = 'gray'
         self.color[x][y] = tcolor

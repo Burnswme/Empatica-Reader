@@ -1,7 +1,7 @@
 """This is the main GUI. It houses the buttons to access the other features of the program.
    From this GUI, the user can load data into the database, view the data in the database,
    or log in to the expert GUI and set the baselines or thresholds."""
-#import tkinter
+# import tkinter
 from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
@@ -14,6 +14,7 @@ import sqlite3
 # 0 means the user is not logged in, anything else means they are logged in
 loggedIn = 0
 
+
 # Set up the main window
 def main():
     root = Tk()
@@ -22,59 +23,66 @@ def main():
 
     root.title("Empatica Reader")
 
-# This the the button to log in to the expert GUI
-# The function passes the username and password variables to adminLogin
+    # This the the button to log in to the expert GUI
+    # The function passes the username and password variables to adminLogin
     global loggedIn
 
-    loginButton = ttk.Button(root, text = "Login as admin",command = lambda: adminLogin())
-    loginButton.place(relx = 1, x = -10, y = 10, rely = 0, anchor = 'ne')
+    loginButton = ttk.Button(root, text="Login as admin", command=lambda: adminLogin())
+    loginButton.place(relx=1, x=-10, y=10, rely=0, anchor='ne')
 
-# This is the button to load data into the database
-    load = ttk.Button(root, text = "Input data", command = loaddata)
-    load.place(relx = .5, rely = .5, anchor = 's')
+    # This is the button to load data into the database
+    load = ttk.Button(root, text="Input data", command=loaddata)
+    load.place(relx=.5, rely=.5, anchor='s')
 
-# This is the button to see the data in the database
-    input = ttk.Button(root, text = "See Your Data", command = loadUsrGUI)
-    input.place(relx = .5, rely = 1, anchor = 's')
-      
-# database dump button
-    dumpB = ttk.Button(root, text = "Clear data", command = dump)
-    dumpB.place(relx = 0,rely = 0, x = 10, y = 10, anchor = 'nw')
+    # This is the button to see the data in the database
+    input = ttk.Button(root, text="See Your Data", command=loadUsrGUI)
+    input.place(relx=.5, rely=1, anchor='s')
+
+    # database dump button
+    dumpB = ttk.Button(root, text="Clear data", command=dump)
+    dumpB.place(relx=0, rely=0, x=10, y=10, anchor='nw')
 
     root.mainloop()
 
+
 # This function opens the user GUI
 def loadUsrGUI():
-    usr = UserGUI.UsrGUI('ACC')
+    usr = UserGUI.UsrGUI('HR')
+
 
 # This function opens the login window to access the expert GUI
 def adminLogin():
     global loggedIn
-    if(loggedIn == 0):
+    if (loggedIn == 0):
         loginWindow = LogInTk()
     else:
         exp = loginAlt()
-
 
 
 # This function loads data into the database
 def loaddata():
     loadGUI = loadusrdata.loadDataGUI()
 
+
 def login(loginWindow):
     usrid = loginWindow.getUsrId()
     pwd = loginWindow.getPwd()
-    if (usrid == 'hello' and pwd == 'world'):
+    if (usrid == 'mercado' and pwd == 'cmpeics'):
         setLoggedIn()
         expGUI = ExpertGUI.ExpertGUI()
-    else :
-        messagebox.showinfo(title = 'Error', message = 'wrong login')
+    else:
+        messagebox.showinfo(title='Error', message='wrong login')
+
+
 def loginAlt():
     expGUI = ExpertGUI.ExpertGUI()
+
+
 def setLoggedIn():
     global loggedIn
     loggedIn = 1
-   
+
+
 # clears the data in the DB
 def dump():
     print('dumping')
@@ -83,15 +91,25 @@ def dump():
 
     cursor = connection.cursor()
 
+    cursor.execute('select max(date) from data')
+# get most recent date form db
+    tup = cursor.fetchone()
+    recdate = float(tup[0])
 
-#login popup for admin
+# delete any data older than a week
+    recdate -= (604800 + 86400)
+    cursor.execute('delete from data where date < '+str(recdate)+';')
+    connection.commit()
+    messagebox.showinfo(title='Cleared!', message='Database has been trimmed.')
+
+
+# login popup for admin
 class LogInTk():
-
     def __init__(self):
         self.win = Tk()
         self.win.geometry('250x80+300+300')
         self.win.title("Admin Login")
-        self.win.bind('<Return>',self.getData)
+        self.win.bind('<Return>', self.getData)
 
         self.usrId = ""
         self.pwd = ""
@@ -99,32 +117,30 @@ class LogInTk():
         self.usrIdLbl = ttk.Label(self.win, text='User ID')
         self.pwdLbl = ttk.Label(self.win, text='Password')
         self.usrIdEntry = ttk.Entry(self.win, width=20)
-        self.pwdEntry = ttk.Entry(self.win, width=20, show = '*')
-        self.submit = ttk.Button(self.win, text="Submit", command = lambda: self.getData('a'))
+        self.pwdEntry = ttk.Entry(self.win, width=20, show='*')
+        self.submit = ttk.Button(self.win, text="Submit", command=lambda: self.getData('a'))
 
         self.setFields()
 
-
     def setFields(self):
-        self.usrIdLbl.grid(row = 1, column = 1)
-        self.pwdLbl.grid(row = 2, column = 1)
+        self.usrIdLbl.grid(row=1, column=1)
+        self.pwdLbl.grid(row=2, column=1)
 
-        self.usrIdEntry.grid(row = 1, column = 2)
-        self.pwdEntry.grid(row = 2, column = 2)
+        self.usrIdEntry.grid(row=1, column=2)
+        self.pwdEntry.grid(row=2, column=2)
 
-        self.submit.grid(row = 3, column = 2)
+        self.submit.grid(row=3, column=2)
 
-
-    def getData(self,a):
+    def getData(self, a):
         self.usrId = self.usrIdEntry.get()
         self.pwd = self.pwdEntry.get()
         login(self)
 
-
     def getUsrId(self):
         return self.usrId
+
     def getPwd(self):
-        #clear the window after login
+        # clear the window after login
         self.win.destroy()
         return self.pwd
 

@@ -6,11 +6,6 @@ from tkinter import messagebox
 
 
 class loadDataGUI():
-    # establish db connection to be used
-    connection = sqlite3.connect("empaticareader.db")
-
-    cursor = connection.cursor()
-
     baselines = []
     # baselines
     arrbase = 0
@@ -47,6 +42,12 @@ class loadDataGUI():
 
 
     def __init__(self):
+
+        # establish db connection to be used
+        self.connection = sqlite3.connect("empaticareader.db")
+
+        self.cursor = self.connection.cursor()
+
         self.datawin = Tk()
 
         self.datawin.geometry('175x200+800+200')
@@ -178,7 +179,7 @@ class loadDataGUI():
         # inserts all values from array to database
         while (i < len(ar)):
             try:
-                com = 'UPDATE data SET ' + st + '=' + str(ar[i]) + ', ' + at + '=' + str(al[i]) + ' WHERE date = ' + str(time) + ';'
+                com = 'UPDATE data SET ' + st + '=' + str(ar[i]) + ', ' + at + '= ' + str(al[i]) + ' WHERE date = ' + str(time) + ';'
                 self.cursor.execute(com)
                 self.connection.commit()
             except:
@@ -190,7 +191,7 @@ class loadDataGUI():
         # first we pull the timestamp and sample rate from file
         timestamp = int(float(ary[0]) % 3600)
         sampleRate = int(float(ary[1]))
-        arrayIndex = 0
+        arrayIndex = 3
         # then we cut partial hours
         if (timestamp > 0):
             arrayIndex = timestamp * sampleRate
@@ -254,21 +255,21 @@ class loadDataGUI():
         timestamp = int(float(timerow[0]) % 3600)
         samplerow = acclist[1].split(',')
         sampleRate = int(float(samplerow[1]))
-        arrayIndex = 0
+        arrayIndex = 3
 
         # then we cut partial hours off the front
         if (timestamp > 0):
-            arrayIndex = timestamp * sampleRate
+            arrayIndex = timestamp * sampleRate + 1
 
         # set timestamp to first full hour of data
         timestamp = float(timerow[0])+(timestamp-3600)
-        counter = 11520  # holds number of measurements per hour, used in inner loop
+        counter = 115200  # holds number of measurements per hour, used in inner loop
         returnVal = []
         alert = []
         boo = 0 # value to be stored if an alert is to be triggered
         type = 'ACC'
         sum = 0
-        divisor = 11520  # duplicate of counter, not changed in loop
+        divisor = 115200  # duplicate of counter, not changed in loop
         average = 0
         hours = 0
 
@@ -277,23 +278,32 @@ class loadDataGUI():
         end = len(acclist) - arrayIndex
         leftOver = end % divisor
         end = end - leftOver
-        leveler = (end - arrayIndex) % 10
+        leveler = (end - arrayIndex) % 1
         end = end - leveler
 
         # nested loop to calculate averages for the hours in the file, outer is for whole file, inner is for each hour
         # (end - divisor *20) this makes sure the last time this loop executes is on the last hour
-        while (arrayIndex <= (end - divisor * 10)):
+        while (arrayIndex <= (end - divisor)):
             sum = 0
             while (counter > 0):
                 row = acclist[arrayIndex].split(',')
+                row2 = acclist[arrayIndex - 1].split(',')
 
                 # find resultant vector from components given
                 magnitude = 0
-                x = float(row[0])**2
-                y = float(row[1])**2
-                z = float(row[2])**2
+                x = abs(float(row[0]))
+                y = abs(float(row[1]))
+                z = abs(float(row[2]))
 
-                magnitude = (x+y+z)**(.5)
+                """x2 = float(row2[0])
+                y2 = float(row2[1])
+                z2 = float(row2[2])
+
+                xcomp = abs(x - x2)
+                ycomp = abs(y - y2)
+                zcomp = abs(z - z2)"""
+
+                magnitude = (x+y+z)
 
 
                 if self.isalert(magnitude, type):
@@ -302,7 +312,7 @@ class loadDataGUI():
                 self.max(magnitude,type)
 
                 sum += magnitude
-                arrayIndex += 10  # of the values are collected
+                arrayIndex += 1  # of the values are collected
                 counter -= 1
             average = sum / divisor
             returnVal.append(average)  # store the average for this hour in the return array

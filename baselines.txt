@@ -1,12 +1,18 @@
-75
-90
-55
-15
-30
-55
+3.6
+180
+100
 1
-0
 1
-C:/Users/William/PycharmProjects/Empatica Reader/Apple.jpg
-C:/Users/William/PycharmProjects/Empatica Reader/Monkey.jpg
-C:/Users/William/PycharmProjects/Empatica Reader/Donkey.jpg
+.65
+1
+1
+1
+warning.png
+warning.png
+warning.png
+384.0
+1.0
+178.82
+52.35
+8.995605
+0.0
