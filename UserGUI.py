@@ -1,3 +1,5 @@
+"""User GUI displays the information gathered from the database in the form of a bar chart.
+   In order to function properly, the user first needs to import data using the main GUI."""
 #import tkinter and pymysql for database interaction
 from tkinter import *
 from tkinter import ttk
@@ -7,6 +9,7 @@ from PIL import Image, ImageTk
 
 
 class UsrGUI():
+
     DAY = 86400
     HOUR = 3600
     OFFSET = 3600*4
@@ -46,14 +49,14 @@ class UsrGUI():
     # holds all our images and colors if they need to be on the label
     image = [[0 for x in range(24)]for y in range(7)]
     color = [[0 for x in range(24)]for y in range(7)]
-    avg =   [[0 for x in range(24)]for y in range(7)]
 
     # holds width for all labels
     w = 5
 
+    # metric is the data passed by the call to UsrGUI in the mainGUI method
     def __init__(self, metric):
 
-        # database connection
+        # establish the database connection
         self.connection = sqlite3.connect("empaticareader.db")
 
         self.cursor = self.connection.cursor()
@@ -179,6 +182,8 @@ class UsrGUI():
             tenP = Label(self.daysCanvas, text = '10:00',width = self.w ).grid(row = 0,column = 23)
             elevenP = Label(self.daysCanvas, text = '11:00',width = self.w ).grid(row = 0,column = 24)
 
+    # these are the separate display methods for each metric
+
     def sethrdisplay(self):
         self.rootu.destroy()
         UsrGUI('HR')
@@ -194,7 +199,8 @@ class UsrGUI():
         UsrGUI('EDA')
 
 
-# to set the color of a given hour block of a day
+    # to set the color of a given hour block of a day
+    # x and y are integers indicating the position of the label
     def setColor(self,x,y):
         # set unix timestamp from day/hour
         work = True
@@ -224,7 +230,6 @@ class UsrGUI():
 
             # Activity set
             if self.metric == 'ACC':
-                self.avg[x][y] = '%.2f'%float(self.ACC)
                 # low limits darkblue values , midd limits light blue values, high limits green values
                 # we use nexthigh to limit orange values, anything over nexthigh is red
                 perc = 3
@@ -259,7 +264,6 @@ class UsrGUI():
 
             # Heart rate set
             elif self.metric == 'HR':
-                self.avg[x][y] = '%.2f'%float(self.HR)
                 # low limits darkblue values , midd limits light blue values, high limits green values
                 # we use nexthigh to limit orange values, anything over nexthigh is red
                 perc = (self.hrmax - self.hrmin)*.05
@@ -294,7 +298,6 @@ class UsrGUI():
 
             # Arousal set
             elif self.metric == 'EDA':
-                self.avg[x][y] = '%.2f'%float(self.EDA)
                 # low limits darkblue values , midd limits light blue values, high limits green values
                 # we use nexthigh to limit orange values, anything over nexthigh is red
                 perc = (self.arrmax - self.arrmin)*.015
@@ -327,10 +330,8 @@ class UsrGUI():
                     self.image[x][y] = ''
 
             if (self.ACC == 0 and self.HR == 0 and self.EDA == 0):
-                self.avg[x][y] = ''
                 tcolor = 'gray'
 
         else:
-            self.avg[x][y] = ''
             tcolor = 'gray'
         self.color[x][y] = tcolor

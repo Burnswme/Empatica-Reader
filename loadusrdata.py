@@ -1,26 +1,32 @@
+"""This is the heart of the program. It takes the data from the location indicated by
+   the user, enters it into the database, and does the arithmetic operations necessary
+   to calculate the hourly averages, alerts, and maximum and minimum values."""
 from tkinter import filedialog
 from tkinter import *
 from tkinter import ttk
 import sqlite3
 from tkinter import messagebox
 
+# this method holds the variables for the thresholds, alerts,etc. to be accessed by other methods
 
 class loadDataGUI():
     baselines = []
-    # baselines
+    # these are the baselines
     arrbase = 0
     accbase = 0
     hrbase = 0
-    # thresholds
+    # these are the thresholds
     arrthresh = 0
     accthresh = 0
     hrthresh = 0
-    # if display alert
+
+    # these variables show whether to display an alert
     arrdis = 0
     accdis = 0
     hrdis = 0
 
-    # these will hold the alert thresholds
+    # these will hold the values created by the thresholds
+
     acclow = 0
     acchigh = 0
 
@@ -30,7 +36,8 @@ class loadDataGUI():
     arrlow = 0
     arrhigh = 0
 
-    # values to hold min and max value recorded
+    # these variables hold the minimum and maximum values
+
     accmin = 12
     accmax = 13
 
@@ -40,15 +47,18 @@ class loadDataGUI():
     arrmin = 16
     arrmax = 17
 
+    """This is the init method, which sets up the database connection and instantiates the variables
+   based on the values in baselines.txt"""
 
     def __init__(self):
 
-        # establish db connection to be used
+        # establish connection to the empatica reader database
+
         self.connection = sqlite3.connect("empaticareader.db")
 
         self.cursor = self.connection.cursor()
 
-        self.datawin = Tk()
+        self.datawin = Toplevel()
 
         self.datawin.geometry('175x200+800+200')
 
@@ -63,6 +73,8 @@ class loadDataGUI():
         self.fin = ttk.Button(self.datawin, text='done', command=self.close) \
             .place(relx=.5, rely=.8, anchor="center")
 
+        # this is where the program opens the baselines folder and populates the variables in loadDataGUI()
+
         self.baselines = open('baselines.txt', 'r').read().split('\n')
         # baselines
         self.arrbase = float(self.baselines[0])
@@ -72,7 +84,7 @@ class loadDataGUI():
         self.arrthresh = float(self.baselines[3])
         self.accthresh = float(self.baselines[4])
         self.hrthresh = float(self.baselines[5])
-        # if display alert
+        # whether to display an alert
         self.arrdis = float(self.baselines[6])
         self.accdis = float(self.baselines[7])
         self.hrdis = float(self.baselines[8])
@@ -98,10 +110,11 @@ class loadDataGUI():
 
         self.datawin.mainloop()
 
+    # this method destroys the pop up window
     def close(self):
         self.update()
         self.datawin.destroy()
-
+    """This function opens the file selected by the user and saves the path to a list"""
     def open(self):
         try:
             self.path = filedialog.askdirectory()
@@ -113,7 +126,7 @@ class loadDataGUI():
             self.accarr = self.activity.read().split("\n")
             self.arousalarr = self.arousal.read().split("\n")
 
-            # to put timestamp to next lowest hour
+            # to prevent partial hours, this part puts the timestamp to the next lowest hour
             stime = int(float(self.hrarr[0])) % 3600
             stime = int(float(self.hrarr[0])) - stime
 
@@ -122,7 +135,9 @@ class loadDataGUI():
             self.fill(self.hrarr[0])
 
             etime = len(self.hrarr) // 3600
-            etime = etime*3600 + stime                  #number of hours in file
+            etime = etime*3600 + stime                 # etime is the number of hours in the file
+
+            # this loop stores the dates into the database
 
             while stime <= etime:
                 try:
@@ -135,6 +150,7 @@ class loadDataGUI():
                 stime += 3600
 
             # call the methods to compile the data from the files
+
             self.dbavger(self.hrarr)
             self.dbavger(self.arousalarr)
             self.accavg(self.accarr)
@@ -143,19 +159,19 @@ class loadDataGUI():
         except:
            messagebox.showinfo(title = 'Error', message = 'Invalid folder selected')
 
-    # method to fill missing rows of db
+    # method to fill missing rows of the database
+
     def fill(self, dat):
         # find start of file to know how much to fill
         time = int(float(dat)) % 3600
         time = int(float(dat)) - time + 3600
 
-        # pull largest and thus most recent date from db
+        # pull largest and thus most recent date from the database
         self.cursor.execute('SELECT MAX(date) FROM Data')
         last = self.cursor.fetchone()
         num = int(last[0])
 
-        i = 1
-        # fill the days with no data with 0's
+        # this loop fills the days with no data with 0's
         while (num < time):
             try:
                 stat = 'INSERT into Data (date, ACC, HR, EDA) VALUES(' + str(num) + ', 0,0,0)'
@@ -165,7 +181,9 @@ class loadDataGUI():
                 self.connection.rollback()
             num = num + 3600
 
-    # commits data to data base
+    # commits the data to the database
+    # ar is the array, st is the string containing the database column, al is a list holding the alert values
+
     def commitdb(self, ar, st, al):
         i = 0
 
@@ -176,7 +194,7 @@ class loadDataGUI():
         time = int(float(self.hrarr[0])) - time + 3600
 
 
-        # inserts all values from array to database
+        # inserts all values from list to database
         while (i < len(ar)):
             try:
                 com = 'UPDATE data SET ' + st + '=' + str(ar[i]) + ', ' + at + '= ' + str(al[i]) + ' WHERE date = ' + str(time) + ';'
@@ -186,15 +204,16 @@ class loadDataGUI():
                 self.connection.rollback()
             i = i + 1
             time = time + 3600
-
+    # dbavger takes the values passed to it by the open function and averages them by the hour
+    # this method does not calculate activity, that happens in a separate method
     def dbavger(self, ary):
         # first we pull the timestamp and sample rate from file
         timestamp = int(float(ary[0]) % 3600)
         sampleRate = int(float(ary[1]))
-        arrayIndex = 3
+        listIndex = 3
         # then we cut partial hours
         if (timestamp > 0):
-            arrayIndex = timestamp * sampleRate
+            listIndex = timestamp * sampleRate
         # set timestamp to first full hour of data
         timestamp = float(ary[0])+(timestamp-3600)
         counter = 0  # will hold measurements per hour, used in inner loop
@@ -207,7 +226,7 @@ class loadDataGUI():
         average = 0
         hours = 0
 
-        # see if file is for HR or EDA
+        # see if file is for HR or EDA, because they have different sample rates
         if (sampleRate == 1):
             type = "HR"
             counter = 360
@@ -218,34 +237,34 @@ class loadDataGUI():
             divisor = 1440
 
         # find the length of the file so we know when to stop, cutting any partial hours
-        end = len(ary) - arrayIndex
+        end = len(ary) - listIndex
         leftOver = end % divisor
         end = end - leftOver
-        leveler = (end - arrayIndex) % 10
+        leveler = (end - listIndex) % 10
         end = end - leveler
 
         # nested loop to calculate averages for the hours in the file, outer is for whole file, inner is for each hour
         # (end - divisor *20) this makes sure the last time this loop executes is on the last hour
-        while (arrayIndex <= (end - divisor * 10)):
+        while (listIndex <= (end - divisor * 10)):
             sum = 0
             while (counter > 0):
-                sum += float(ary[arrayIndex])  # array index increments by ten to reduce number of calculations
+                sum += float(ary[listIndex])  # list index increments by ten to reduce number of calculations
 
-                if self.isalert(float(ary[arrayIndex]), type):
-                    boo = 1
+                if self.isalert(float(ary[listIndex]), type): # if the value is high or low enough to trigger an alert
+                    boo = 1                                    # boo is set to one and stored
 
-                self.max(float(ary[arrayIndex]),type)
+                self.maxmin(float(ary[listIndex]),type)
 
-                arrayIndex += 10
+                listIndex += 10
                 counter -= 1
 
             average = sum / divisor
-            returnVal.append(average)  # store the average for this hour in the return array
+            returnVal.append(average)  # store the average for this hour in the return list
             alert.append(boo)
             counter = divisor
             hours += 1
 
-        # commit list to db
+        # commit list to database
         self.commitdb(returnVal, type, alert)
 
     # special case averager for the ACC file, since it uses three columns and 3D measurements
@@ -255,11 +274,11 @@ class loadDataGUI():
         timestamp = int(float(timerow[0]) % 3600)
         samplerow = acclist[1].split(',')
         sampleRate = int(float(samplerow[1]))
-        arrayIndex = 3
+        listIndex = 3
 
         # then we cut partial hours off the front
         if (timestamp > 0):
-            arrayIndex = timestamp * sampleRate + 1
+            listIndex = timestamp * sampleRate + 1
 
         # set timestamp to first full hour of data
         timestamp = float(timerow[0])+(timestamp-3600)
@@ -275,30 +294,31 @@ class loadDataGUI():
 
 
         # find length of file so we know when to stop, cutting any partial hours
-        end = len(acclist) - arrayIndex
+        end = len(acclist) - listIndex
         leftOver = end % divisor
         end = end - leftOver
-        leveler = (end - arrayIndex) % 1
+        leveler = (end - listIndex) % 1
         end = end - leveler
 
         # nested loop to calculate averages for the hours in the file, outer is for whole file, inner is for each hour
         # (end - divisor *20) this makes sure the last time this loop executes is on the last hour
-        while (arrayIndex <= (end - divisor)):
+        while (listIndex <= (end - divisor)):
             sum = 0
             while (counter > 0):
-                row = acclist[arrayIndex].split(',')
-                row2 = acclist[arrayIndex - 1].split(',')
+                row = acclist[listIndex].split(',')
+                row2 = acclist[listIndex - 1].split(',')
 
                 # find resultant vector from components given
-                magnitude = 0
                 x = abs(float(row[0]))
                 y = abs(float(row[1]))
                 z = abs(float(row[2]))
 
+                # this block of code records the difference from one datapoint to the next
+                # as we could not get it working in the time given, it is not used
+                # but it may prove useful to whomever maintains the program, so is included here
                 """x2 = float(row2[0])
                 y2 = float(row2[1])
                 z2 = float(row2[2])
-
                 xcomp = abs(x - x2)
                 ycomp = abs(y - y2)
                 zcomp = abs(z - z2)"""
@@ -306,26 +326,28 @@ class loadDataGUI():
                 magnitude = (x+y+z)
 
 
-                if self.isalert(magnitude, type):
+                if self.isalert(magnitude, type):   # if there is an alert, record it
                     boo = 1
 
-                self.max(magnitude,type)
+                self.maxmin(magnitude,type)
 
                 sum += magnitude
-                arrayIndex += 1  # of the values are collected
+                listIndex += 1  # of the values are collected
                 counter -= 1
             average = sum / divisor
-            returnVal.append(average)  # store the average for this hour in the return array
+            returnVal.append(average)  # store the average for this hour in the return list
             alert.append(boo)
             counter = divisor
             hours += 1
 
-        # commit list to db
+        # commit list to database
         self.commitdb(returnVal, type, alert)
 
 
-    # checks if this is a smallest value of not
-    def max(self, p, ty):
+    # this method checks if this is a maximum or minimum value or not
+    # p is the parameter, a float passed by the dbavger method,ty is type of the data, a string containing either
+    # EDA(arousal) ACC(activity) or HR(heart rate)
+    def maxmin(self, p, ty):
         if ty == 'EDA':
             if p > self.arrmax:
                 self.arrmax = p
@@ -344,6 +366,7 @@ class loadDataGUI():
 
 
     # checks to see if an alert needs to be displayed for that hour
+    # p is the parameter (a float), ty is the type (a string)
     def isalert(self,p,ty):
         if ty == 'EDA' and self.arrdis == 1 and (p > self.arrhigh or p < self.arrlow):
             return True
