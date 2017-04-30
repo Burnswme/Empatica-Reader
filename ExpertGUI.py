@@ -6,7 +6,6 @@ from tkinter import *
 from tkinter import filedialog
 from tkinter import messagebox
 from tkinter import ttk
-#from PIL.Image import core as _imaging
 from PIL import Image, ImageTk
 
 class ExpertGUI():
@@ -32,7 +31,7 @@ class ExpertGUI():
                         self.activityTrigger = self.lines[4]
                         self.heartRateTrigger = self.lines[5]
 
-                        #these variables will hold the values of the checkboxes
+                        # these variables will hold the values of the checkboxes
 
                         self.arousalDisplay = IntVar()
                         self.arousalDisplay.set(self.lines[6])
@@ -40,7 +39,6 @@ class ExpertGUI():
                         self.activityDisplay.set(self.lines[7])
                         self.heartRateDisplay = IntVar()
                         self.heartRateDisplay.set(self.lines[8])
-                        #print(self.arousalDisplay.get(),self.activityDisplay.get(),self.heartRateDisplay.get())
 
                         #these variables will hold the path specifying the source image of the alerts
 
@@ -105,16 +103,16 @@ class ExpertGUI():
                 self.chkBoxFrame.grid(row=0,column=0)
 
                 #frame 2 holds the data from the currently selected variable
-                self.baselineFrame = LabelFrame(self.rootE,text = "Update Baselines")
+                self.baselineFrame = LabelFrame(self.rootE,text = "Set Baselines")
                 self.baselineFrame.grid(row=0,column=1)
 
                 #frame 3 holds the % deviation from the baseline at which the program triggers an alert
-                self.thresholdFrame = LabelFrame(self.rootE,text = "Set percentage at which to trigger alerts")
+                self.thresholdFrame = LabelFrame(self.rootE,text = "Set percentage as a decimal at which to trigger alerts")
                 self.thresholdFrame.grid(row=1,column=1)
 
                 #frame 4 holds the current images used for alerts and allows the user to specify a path
                 #where to find the new alerts
-                self.alertFrame = LabelFrame(self.rootE,text = "Set the visual representations of the alerts")
+                self.alertFrame = LabelFrame(self.rootE,text = "Set the images used for alerts")
                 self.alertFrame.grid(row=1,column=0)
 
                 #the update button takes values present in the fields, checks them against baselines.txt, and updates them
@@ -135,22 +133,23 @@ class ExpertGUI():
                 #these are the entry boxes for the baselines, populated automatically by the GUI
                 #using the baselines present in baselines.txt
 
-                self.aroEntry = Label(self.baselineFrame,text = "Arousal Baseline")
-                self.aroEntry.pack()
+               # arousal
+                self.aroLabel = Label(self.baselineFrame,text = "Arousal Baseline")
+                self.aroLabel.pack()
                 self.aroEntry = Entry(self.baselineFrame,bd = 5)
                 self.aroEntry.pack()
                 self.arousalBaselineString = str(self.arousalBaseline) #convert floats and ints into strings before storing in the entry box
                 self.aroEntry.insert(0,self.arousalBaselineString)
-
-                self.actEntry = Label(self.baselineFrame,text = "Activity Baseline")
-                self.actEntry.pack()
+               # activity
+                self.actLabel = Label(self.baselineFrame,text = "Activity Baseline")
+                self.actLabel.pack()
                 self.actEntry = Entry(self.baselineFrame,bd = 5)
                 self.actEntry.pack()
                 self.activityBaselineString = str(self.activityBaseline)
                 self.actEntry.insert(0,self.activityBaselineString)
-
-                self.heaEntry = Label(self.baselineFrame, text = "Heart Rate Baseline")
-                self.heaEntry.pack()
+               # HR
+                self.heaLabel = Label(self.baselineFrame, text = "Heart Rate Baseline")
+                self.heaLabel.pack()
                 self.heaEntry = Entry(self.baselineFrame,bd = 5)
                 self.heaEntry.pack()
                 self.heartRateBaselineString = str(self.heartRateBaseline)
@@ -158,20 +157,22 @@ class ExpertGUI():
 
                 #these are the entry boxes for the alert thresholds, set automatically by the GUI
                 #using the last 3 lines from baselines.txt
+
+               # arousal
                 self.aroThreshold = Label(self.thresholdFrame, text = "Arousal Alert Threshold")
                 self.aroThreshold.pack()
                 self.aroTrigger = Entry(self.thresholdFrame,bd = 5)
                 self.aroTrigger.pack()
                 self.arousalTriggerString = str(self.arousalTrigger) #convert ints and floats to strings
                 self.aroTrigger.insert(0,self.arousalTriggerString)
-
+               # activty
                 self.actThreshold = Label(self.thresholdFrame, text = "Activity Alert Threshold")
                 self.actThreshold.pack()
                 self.actTrigger = Entry(self.thresholdFrame,bd = 5)
                 self.actTrigger.pack()
                 self.activityTriggerString = str(self.activityTrigger)
                 self.actTrigger.insert(0,self.activityTriggerString)
-
+               # HR
                 self.heaThreshold = Label(self.thresholdFrame, text = "Heart Rate Threshold")
                 self.heaThreshold.pack()
                 self.heaTrigger = Entry(self.thresholdFrame,bd = 5)
@@ -180,6 +181,8 @@ class ExpertGUI():
                 self.heaTrigger.insert(0,self.heartRateTriggerString)
 
                 # these variables will hold the actual images
+
+                # arousal
                 try:
                         self.imgtemp = Image.open(self.arousalAlert)
                 except:
@@ -190,7 +193,7 @@ class ExpertGUI():
 
                 self.imgtemp = self.imgtemp.resize((40, 40), Image.ANTIALIAS)
                 self.aroAlert = ImageTk.PhotoImage(self.imgtemp)
-
+               # activity
                 try:
                         self.imgtemp2 = Image.open(self.activityAlert)
                 except:
@@ -201,7 +204,7 @@ class ExpertGUI():
 
                 self.imgtemp2 = self.imgtemp2.resize((40, 40), Image.ANTIALIAS)
                 self.actAlert = ImageTk.PhotoImage(self.imgtemp2)
-
+               # HR
                 try:
                         self.imgtemp3 = Image.open(self.heartRateAlert)
                 except:
@@ -214,26 +217,34 @@ class ExpertGUI():
                 self.heaAlert = ImageTk.PhotoImage(self.imgtemp3)
 
                 #these are the images used for the alerts
+
+               # arousal
                 self.aroImageLabel = Label(self.alertFrame,text = "Arousal Alert Image", image = self.aroAlert)
                 self.aroImageLabel.grid(column = 0,row = 0)
+               # activity
                 self.actImageLabel = Label(self.alertFrame,text = "Activity Alert Image", image = self.actAlert)
                 self.actImageLabel.grid(column = 0,row = 1)
+               # HR
                 self.heaImageLabel = Label(self.alertFrame,text = "Heart Rate Alert Image", image = self.heaAlert)
                 self.heaImageLabel.grid(column = 0,row = 2)
-
+               # arousal
                 self.arousalButton = ttk.Button(self.alertFrame, text="Update Arousal Alert Image",
                                             command = lambda: self.pickFile(self.aroAlert))
                 self.arousalButton.grid(column = 1,row = 0)
+               # activity
                 self.activityButton = ttk.Button(self.alertFrame, text = "Update Activity Alert Image",
                                              command = lambda: self.pickFile(self.actAlert))
                 self.activityButton.grid(column = 1,row = 1)
+               # HR
                 self.heartRateButton = ttk.Button(self.alertFrame,text = "Update Heart Rate Alert Image",
                                               command = lambda: self.pickFile(self.heaAlert))
                 self.heartRateButton.grid(column = 1,row = 2)
 
                 self.rootE.mainloop()
 
+   # update function saves the data to the file
         def update(self):
+         # changes values of data variables if they were altered by the user
                 if(self.aroEntry.get() != self.arousalBaseline):
                         self.arousalBaseline = self.aroEntry.get()
                 if(self.actEntry.get() != self.activityBaseline):
@@ -272,7 +283,9 @@ class ExpertGUI():
                 file1.close()
                 ExpertGUI()
 
+# pickfile function that creates message dialog to set a new image paths
         def pickFile(self,image):
+                # arousal
                 if (image == self.aroAlert):
                         self.arousalAlert = filedialog.askopenfilename()
                         try:
@@ -280,6 +293,7 @@ class ExpertGUI():
                         except:
                                 messagebox.showinfo(title='Error',
                                                     message='This is not a valid image file')
+                # activity
                 if(image == self.actAlert):
                         self.activityAlert = filedialog.askopenfilename()
                         try:
@@ -287,6 +301,7 @@ class ExpertGUI():
                         except:
                                 messagebox.showinfo(title='Error',
                                                     message='This is not a valid image file')
+                # HR
                 if(image == self.heaAlert):
                         self.heartRateAlert = filedialog.askopenfilename()
                         try:
